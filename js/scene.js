@@ -30,6 +30,7 @@ import {
 import { RoomEnvironment } from "three/addons/environments/RoomEnvironment.js";
 
 // Texturas WebP del Hero
+export const HERO_SUBJECT = "photo";
 const hero_photo_default = "./assets/hero-photo.webp";
 const hero_xray_default = "./assets/hero-xray.webp";
 const hero_edge_default = "./assets/hero-edge.webp";
@@ -3166,4 +3167,4 @@ var HeroScene = class {
 
 
 // Exportaciones principales
-export { HeroScene, getSceneTier, isEnergySaver };
+export { HeroScene, getSceneTier, isEnergySaver, PLATE, DEFAULT_PARAMS, fitSubjectToBox };

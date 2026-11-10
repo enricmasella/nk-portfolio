@@ -25,7 +25,7 @@ import {
   stringsPaddock,
   stringsFooter
 } from "./translations.js";
-import { HeroScene, getSceneTier, isEnergySaver } from "./scene.js";
+import { HeroScene, getSceneTier, isEnergySaver, PLATE, DEFAULT_PARAMS, fitSubjectToBox } from "./scene.js";
 
 var __defProp = Object.defineProperty;
 var __export = (target, all) => {
