@@ -1,0 +1,20 @@
+{
+  "name": "nk-portfolio",
+  "version": "1.0.0",
+  "description": "Enric Masella's portfolio website",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "npx serve .",
+    "preview": "npx serve ."
+  },
+  "dependencies": {
+    "@vercel/analytics": "^1.4.1"
+  },
+  "keywords": [
+    "portfolio",
+    "web-developer"
+  ],
+  "author": "Enric Masella",
+  "license": "UNLICENSED"
+}
