@@ -9,7 +9,7 @@
     "preview": "npx serve ."
   },
   "dependencies": {
-    "@vercel/analytics": "^1.4.1"
+    "@vercel/analytics": "^2.0.1"
   },
   "keywords": [
     "portfolio",
