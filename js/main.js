@@ -8,7 +8,6 @@ import {
   NAV,
   dict,
   lang,
-  registerStrings,
   t,
   getLang,
   detect,
@@ -17,13 +16,7 @@ import {
   setLang,
   onLang,
   initI18n,
-  strings,
-  stringsHero,
-  stringsDock,
-  stringsSeason,
-  stringsTimeline,
-  stringsPaddock,
-  stringsFooter
+  fmtNum
 } from "./translations.js";
 import { HeroScene, getSceneTier, isEnergySaver, PLATE, DEFAULT_PARAMS, fitSubjectToBox } from "./scene.js";
 
@@ -93,8 +86,19 @@ function startLenis() {
 function scrollToTarget(target, opts = {}) {
   const el = typeof target === "string" ? document.querySelector(target) : target;
   if (!el) return;
-  if (lenis) lenis.scrollTo(el, { duration: 1.4, easing: (x) => 1 - Math.pow(1 - x, 4), ...opts });
-  else el.scrollIntoView({ behavior: reduced() ? "auto" : "smooth", block: "start" });
+  // #top is the hero's sticky stage: its box does not move with the page, so "the top" is simply 0
+  const home = el.id === "top";
+  const centre = el.dataset?.align === "center";
+  let offset = 0;
+  if (centre) {
+    const dock = document.querySelector("[data-dock]")?.offsetHeight || 0;
+    offset = -Math.max(0, (window.innerHeight - dock - el.getBoundingClientRect().height) / 2);
+  }
+  if (lenis) lenis.scrollTo(home ? 0 : el, { offset, duration: 1.4, easing: (x) => 1 - Math.pow(1 - x, 4), ...opts });
+  else {
+    const top = home ? 0 : window.scrollY + el.getBoundingClientRect().top + offset;
+    window.scrollTo({ top: Math.max(0, top), behavior: reduced() || opts.immediate ? "auto" : "smooth" });
+  }
 }
 var CFG = {
   REVEAL: { tension: 90, friction: 26 },
@@ -499,7 +503,7 @@ var DEV = /^(localhost|127\.0\.0\.1|\[::1\])$/.test(location.hostname) || locati
 
 
 // src/hero/markup.html
-var markup_default = '<section class="hero" data-hero aria-labelledby="hero-title">\n  <div class="hero__scene" aria-hidden="true" data-i18n-attr="aria-label:hero.photoAlt">\n    <canvas class="hero__canvas" data-canvas></canvas>\n    <div class="hero__plate" data-hero-plate></div>\n    <img class="hero__fallback" data-fallback alt="" hidden width="1536" height="1024">\n  </div>\n  <div class="hero__ramp" aria-hidden="true"></div>\n\n  <div class="hero__col">\n    <header class="mast" data-mast>\n      <a class="mast__logo" href="#top" data-i18n-attr="aria-label:hero.logoLabel"><span aria-hidden="true">Enric Masella</span></a>\n      <div class="mast__right">\n        <div class="lang" role="group" data-i18n-attr="aria-label:a11y.language" data-lang-switch></div>\n        <a class="mast__github link-accent" data-github target="_blank" rel="noopener noreferrer"><span aria-hidden="true">[ </span><span data-i18n="nav.github">GitHub</span><span aria-hidden="true"> \u2192 ]</span></a>\n      </div>\n    </header>\n\n    <div class="hero__fitwrap" aria-hidden="true"><div class="hero__fit" data-hero-fit><i class="hero__ramp2"></i></div></div>\n\n    <div class="hero__main">\n      <div class="ident">\n        <p class="ident__id" data-id>developer_001<i class="ident__caret" data-caret aria-hidden="true"></i></p>\n        <h1 class="ident__name" id="hero-title" data-name></h1>\n        <ul class="ident__meta" data-meta>\n          <li data-meta-row>\n            <svg class="ico ico--loc" viewBox="0 0 18 12" aria-hidden="true" focusable="false"><path d="M9 11.5C9 11.5 3 7.2 3 4.4a6 6 0 0 1 12 0C15 7.2 9 11.5 9 11.5Z M9 6a1.6 1.6 0 1 0 0-3.2A1.6 1.6 0 0 0 9 6Z" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round" transform="translate(0 0.2) scale(1 0.98)"/></svg>\n            <span data-i18n="common.location">Girona, Catalonia</span>\n          </li>\n          <li data-meta-row>\n            <svg class="ico ico--learn" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5.5 4 1.5 8l4 4M10.5 4l4 4-4 4M9.2 2.5 6.8 13.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/></svg>\n            <span data-i18n="hero.rowLearning">DAW \xB7 Web development</span>\n          </li>\n          <li data-meta-row>\n            <svg class="ico ico--seek" viewBox="0 0 14 14" aria-hidden="true" focusable="false"><path d="M1 7h10M7.2 3.2 11 7l-3.8 3.8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/></svg>\n            <span data-i18n="hero.rowSeeking">Looking for an internship</span>\n          </li>\n        </ul>\n      </div>\n\n      <div class="panels" data-hero-panels>\n        <div class="bracket panel" data-bracket>\n          <p class="eyebrow eyebrow--accent" data-i18n="hero.p1.eyebrow">featured project</p>\n          <div class="panel__row">\n            <dl class="panel__list">\n              <dt>Protecsol Karting Cup</dt>\n              <dd data-i18n="hero.p1.kind">karting championship</dd>\n              <dd><time datetime="2026" data-i18n="hero.p1.season">2026 season</time></dd>\n            </dl>\n            <svg class="panel__map" data-hero-map viewBox="0 0 78 50" role="img" data-i18n-attr="aria-label:hero.p1.mapAlt"><path data-map-path d="" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" stroke-linecap="round"/></svg>\n          </div>\n        </div>\n        <div class="bracket panel" data-bracket>\n          <p class="eyebrow" data-i18n="hero.p2.eyebrow">languages</p>\n          <dl class="stats" data-hero-stats>\n            <div class="stats__cell"><dt><span aria-hidden="true" data-i18n="hero.lv.native">native</span><span class="sr-only" data-i18n="hero.lv.es">Spanish: native</span></dt><dd data-stat="es" aria-hidden="true"></dd></div>\n            <div class="stats__cell"><dt><span aria-hidden="true" data-i18n="hero.lv.native">native</span><span class="sr-only" data-i18n="hero.lv.ca">Catalan: native</span></dt><dd data-stat="ca" aria-hidden="true"></dd></div>\n            <div class="stats__cell"><dt><span aria-hidden="true" data-i18n="hero.lv.c1">C1</span><span class="sr-only" data-i18n="hero.lv.en">English: C1</span></dt><dd data-stat="en" aria-hidden="true"></dd></div>\n          </dl>\n        </div>\n      </div>\n    </div>\n\n    <div class="actions" data-actions>\n      <a class="live link-accent" data-mail>\n        <svg class="live__ico" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="15.5" fill="none" stroke="currentColor"/><path d="M11.5 20.5 20.5 11.5M13 11.5h7.5V19" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/></svg>\n        <span class="live__text"><span class="live__label" data-i18n="hero.mail">get in touch</span><span class="live__host" data-mail-host></span></span>\n      </a>\n      <div class="actions__cta" data-cta></div>\n      <ul class="socials"><li><a class="link-accent" data-social="github" target="_blank" rel="noopener noreferrer">github</a></li><li><a class="link-accent" data-social="inst" target="_blank" rel="noopener noreferrer">inst</a></li></ul>\n    </div>\n  </div>\n</section>\n';
+var markup_default = '<section class="hero" data-hero aria-labelledby="hero-title">\n  <div class="hero__scene" aria-hidden="true" data-i18n-attr="aria-label:hero.photoAlt">\n    <canvas class="hero__canvas" data-canvas></canvas>\n    <div class="hero__plate" data-hero-plate></div>\n    <img class="hero__fallback" data-fallback alt="" hidden width="1536" height="1024">\n  </div>\n  <div class="hero__ramp" aria-hidden="true"></div>\n\n  <div class="hero__col">\n    <header class="mast" data-mast>\n      <a class="mast__logo" href="#top" data-i18n-attr="aria-label:hero.logoLabel"><span aria-hidden="true">Enric Masella</span></a>\n      <div class="mast__right">\n        <div class="lang" role="group" data-i18n-attr="aria-label:a11y.language" data-lang-switch></div>\n        <a class="mast__github link-accent" data-github target="_blank" rel="noopener noreferrer"><span aria-hidden="true">[ </span><span data-i18n="nav.github">GitHub</span><span aria-hidden="true"> \u2192 ]</span></a>\n      </div>\n    </header>\n\n    <div class="hero__fitwrap" aria-hidden="true"><div class="hero__fit" data-hero-fit><i class="hero__ramp2"></i></div></div>\n\n    <div class="hero__main">\n      <div class="ident">\n        <p class="ident__id" data-id>developer_001<i class="ident__caret" data-caret aria-hidden="true"></i></p>\n        <h1 class="ident__name" id="hero-title" data-name></h1>\n        <ul class="ident__meta" data-meta>\n          <li data-meta-row>\n            <svg class="ico ico--loc" viewBox="0 0 18 12" aria-hidden="true" focusable="false"><path d="M9 11.5C9 11.5 3 7.2 3 4.4a6 6 0 0 1 12 0C15 7.2 9 11.5 9 11.5Z M9 6a1.6 1.6 0 1 0 0-3.2A1.6 1.6 0 0 0 9 6Z" fill="none" stroke="currentColor" stroke-width="1" stroke-linejoin="round" transform="translate(0 0.2) scale(1 0.98)"/></svg>\n            <span data-i18n="common.location">Girona, Catalonia</span>\n          </li>\n          <li data-meta-row>\n            <svg class="ico ico--learn" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><path d="M5.5 4 1.5 8l4 4M10.5 4l4 4-4 4M9.2 2.5 6.8 13.5" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/></svg>\n            <span data-i18n="hero.rowRole">Aspiring Full-Stack Developer</span>\n          </li>\n          <li data-meta-row>\n            <svg class="ico ico--ai" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="3" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M8 1.5v3M8 11.5v3M1.5 8h3M11.5 8h3" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/></svg>\n            <span data-i18n="hero.rowAi">AI-Augmented, Human-Driven</span>\n          </li>\n          <li class="ident__slop" data-meta-row>\n            <svg class="ico ico--slop" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6" fill="none" stroke="currentColor" stroke-width="1.2"/><path d="M3.8 12.2 12.2 3.8" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/></svg>\n            <span data-i18n="hero.rowSlop">Anti-AI Slop</span>\n          </li>\n        </ul>\n      </div>\n\n      <div class="panels" data-hero-panels>\n        <div class="bracket panel" data-bracket>\n          <p class="eyebrow eyebrow--accent" data-i18n="hero.p1.eyebrow">projects</p>\n          <ul class="panel__projects" data-hero-projects></ul>\n          <p class="panel__legend" aria-hidden="true"><span class="panel__lg"><i class="pdot pdot--live"></i><span data-i18n="hero.p1.live">live</span></span><span class="panel__lg"><i class="pdot"></i><span data-i18n="hero.p1.dev">in development</span></span></p>\n        </div>\n        <div class="bracket panel" data-bracket>\n          <p class="eyebrow" data-i18n="hero.p2.eyebrow">languages</p>\n          <dl class="stats" data-hero-stats>\n            <div class="stats__cell"><dt><span aria-hidden="true" data-i18n="hero.lv.native">native</span><span class="sr-only" data-i18n="hero.lv.es">Spanish: native</span></dt><dd data-stat="es" aria-hidden="true"></dd></div>\n            <div class="stats__cell"><dt><span aria-hidden="true" data-i18n="hero.lv.native">native</span><span class="sr-only" data-i18n="hero.lv.ca">Catalan: native</span></dt><dd data-stat="ca" aria-hidden="true"></dd></div>\n            <div class="stats__cell"><dt><span aria-hidden="true" data-i18n="hero.lv.c1">C1</span><span class="sr-only" data-i18n="hero.lv.en">English: C1</span></dt><dd data-stat="en" aria-hidden="true"></dd></div>\n          </dl>\n        </div>\n      </div>\n    </div>\n\n    <div class="actions" data-actions>\n      <a class="live link-accent" data-mail>\n        <svg class="live__ico" viewBox="0 0 32 32" aria-hidden="true" focusable="false"><circle cx="16" cy="16" r="15.5" fill="none" stroke="currentColor"/><path d="M11.5 20.5 20.5 11.5M13 11.5h7.5V19" fill="none" stroke="currentColor" stroke-width="1.2" stroke-linecap="square"/></svg>\n        <span class="live__text"><span class="live__label" data-i18n="hero.mail">open to internships</span><span class="live__host" data-mail-host></span></span>\n      </a>\n      <div class="actions__cta" data-cta></div>\n      <ul class="socials"><li><a class="link-accent" data-social="github" target="_blank" rel="noopener noreferrer">github</a></li><li><a class="link-accent" data-social="inst" target="_blank" rel="noopener noreferrer">inst</a></li></ul>\n    </div>\n  </div>\n</section>\n';
 
 // src/generated/footer-figure.webp
 
@@ -527,11 +531,6 @@ var CV = {
     { code: "fr", level: "mid" }
     // "intermedio"
   ],
-  // the languages and markup he lists, then the tools, then what he picked up on projects
-  core: ["HTML5", "CSS3", "JavaScript", "PHP", "C#", "SQL", "XML"],
-  tools: ["Git", "GitHub", "Linux", "Bash"],
-  alsoTools: ["DNS", "Active Directory", "Unit testing"],
-  learned: ["React", "TypeScript", "Tailwind CSS", "Framer Motion"]
 };
 var PKC = {
   name: "Protecsol Karting Cup",
@@ -547,6 +546,77 @@ var PKC = {
   series: "SODI World Series",
   place: "Empuriabrava"
 };
+// Skills as NK states them (README + CV), by category. Nothing is deduced from a project's dependencies.
+// "worked" = he has worked with it; "exploring" = still learning it. Moving an item between the two is a one-line edit.
+var SKILLS = {
+  worked: [
+    { cat: "frontend", items: ["HTML5", "CSS3", "XML", "JavaScript"] },
+    { cat: "backend", items: ["PHP", "Symfony", "C#", "Unit testing"] },
+    { cat: "data", items: ["SQL", "MySQL", "PostgreSQL", "SQLite"] },
+    { cat: "ops", items: ["Linux", "Bash", "Apache", "Docker", "DNS", "Active Directory"] },
+    { cat: "vcs", items: ["Git", "GitHub", "GitHub Actions"] },
+    { cat: "ai", items: ["Claude Code", "GPT", "Gemini", "OpenCode", "Hermes", "OmniRoute"] }
+  ],
+  exploring: [
+    { cat: "frontend", items: ["React", "Vue.js", "Next.js"] },
+    { cat: "backend", items: ["Node.js", "Socket.IO"] }
+  ]
+};
+// The four projects, same fields for each. Only facts NK has given: no invented metrics, links or demos.
+// live = published; the rest are in development (private repo, no demo yet).
+var PROJECTS = [
+  {
+    id: "pkc", name: PKC.name, live: true, host: PKC.host, url: PKC.url, stops: 5,
+    stack: () => [t("proj.pkc.s1.name"), "PHP", "React", "SEO"],
+    figs: [{ label: "stat.gp", n: PKC.gp }, { label: "stat.class", n: PKC.classifications.length }],
+    stats: [
+      { icon: "flag", key: "stat.gp", n: PKC.gp },
+      { icon: "trophy", key: "stat.class", n: PKC.classifications.length },
+      { icon: "gauge", key: "stat.cc", n: PKC.engineCc },
+      { icon: "bars", key: "stat.format", text: PKC.format.split(" ")[0].toLowerCase() }
+    ],
+    meet: () => [PKC.name, PKC.place, t("proj.pkc.meet3")]
+  },
+  {
+    id: "chess", name: "NK_Chess", live: false, stops: 5,
+    stack: () => ["React", "Vite", "chess.js"],
+    figs: [{ label: "stat.courses", n: 67 }, { label: "stat.exercises", n: 1203 }],
+    stats: [
+      { icon: "book", key: "stat.courses", n: 67 },
+      { icon: "layers", key: "stat.chapters", n: 181 },
+      { icon: "branch", key: "stat.lines", n: 286 },
+      { icon: "check", key: "stat.exercises", n: 1203 }
+    ],
+    meet: () => ["NK_Chess", t("proj.chess.meet2"), `${fmtNum(6)} ${t("stat.prep")}`]
+  },
+  {
+    id: "uni", name: "uni", live: false, stops: 5,
+    stack: () => ["Next.js", "PostgreSQL"],
+    figs: [{ label: "stat.audience", text: "PAU" }, { label: "stat.price", text: () => t("proj.uni.fig.price") }],
+    stats: [
+      { icon: "cap", key: "stat.audience", text: "PAU" },
+      { icon: "tag", key: "stat.price", text: () => t("proj.uni.fig.price") },
+      { icon: "box", key: "stat.framework", text: "Next.js" },
+      { icon: "db", key: "stat.database", text: "PostgreSQL" }
+    ],
+    meet: () => ["uni", t("proj.uni.meet2"), t("status.dev")]
+  },
+  {
+    id: "snap", name: "SnapRoulette", live: false, stops: 4,
+    stack: () => ["Node.js", "Socket.IO"],
+    figs: [{ label: "stat.rooms", text: () => t("proj.snap.fig.rooms") }, { label: "stat.realtime", text: "Socket.IO" }],
+    stats: [
+      { icon: "node", key: "stat.runtime", text: "Node.js" },
+      { icon: "bolt", key: "stat.realtime", text: "Socket.IO" },
+      { icon: "door", key: "stat.rooms", text: () => t("proj.snap.fig.rooms") },
+      { icon: "scale", key: "stat.license", text: "MIT" }
+    ],
+    meet: () => ["SnapRoulette", t("proj.snap.meet2"), t("status.dev")]
+  }
+];
+var val = (v) => typeof v === "function" ? v() : v;
+var figText = (f) => f.n != null ? fmtNum(f.n) : String(val(f.text));
+var statusOf = (p) => p.live ? t("status.live", { year: PKC.season }) : t("status.dev");
 var ASSET_BASE_URL = "./assets/";
 var PKC_SCREENS_SHIPPED = false;
 var PKC_SCREENS = {
@@ -1008,62 +1078,6 @@ var TRACK_MINI_D = (() => {
 })();
 
 // src/hero/index.js
-var strings2 = {
-  en: {
-    "hero.logoLabel": "Enric Masella \u2014 back to top",
-    "hero.rowLearning": "DAW \xB7 Web development",
-    "hero.rowSeeking": "Looking for an internship",
-    "hero.p1.eyebrow": "featured project",
-    "hero.p1.kind": "karting championship",
-    "hero.p1.season": "2026 season",
-    "hero.p1.mapAlt": "Stylised karting circuit motif",
-    "hero.p2.eyebrow": "languages",
-    "hero.lv.native": "native",
-    "hero.lv.c1": "C1",
-    "hero.lv.es": "Spanish: native",
-    "hero.lv.ca": "Catalan: native",
-    "hero.lv.en": "English: C1",
-    "hero.mail": "get in touch",
-    "hero.cta": "view projects",
-    "hero.photoAlt": "Photo of Enric Masella in silver sunglasses. Moving the cursor over it reveals an X-ray of the same photo."
-  },
-  es: {
-    "hero.logoLabel": "Enric Masella \u2014 volver arriba",
-    "hero.rowLearning": "DAW \xB7 Desarrollo web",
-    "hero.rowSeeking": "En busca de pr\xE1cticas",
-    "hero.p1.eyebrow": "proyecto destacado",
-    "hero.p1.kind": "campeonato de karting",
-    "hero.p1.season": "temporada 2026",
-    "hero.p1.mapAlt": "Motivo estilizado de un circuito de karting",
-    "hero.p2.eyebrow": "idiomas",
-    "hero.lv.native": "nativo",
-    "hero.lv.c1": "C1",
-    "hero.lv.es": "Espa\xF1ol: nativo",
-    "hero.lv.ca": "Catal\xE1n: nativo",
-    "hero.lv.en": "Ingl\xE9s: C1",
-    "hero.mail": "escr\xEDbeme",
-    "hero.cta": "ver proyectos",
-    "hero.photoAlt": "Foto de Enric Masella con gafas de sol plateadas. Al mover el cursor sobre ella aparece una radiograf\xEDa de la misma foto."
-  },
-  ca: {
-    "hero.logoLabel": "Enric Masella \u2014 torna a dalt",
-    "hero.rowLearning": "DAW \xB7 Desenvolupament web",
-    "hero.rowSeeking": "A la recerca de pr\xE0ctiques",
-    "hero.p1.eyebrow": "projecte destacat",
-    "hero.p1.kind": "campionat de karting",
-    "hero.p1.season": "temporada 2026",
-    "hero.p1.mapAlt": "Motiu estilitzat d'un circuit de karting",
-    "hero.p2.eyebrow": "idiomes",
-    "hero.lv.native": "natiu",
-    "hero.lv.c1": "C1",
-    "hero.lv.es": "Castell\xE0: natiu",
-    "hero.lv.ca": "Catal\xE0: natiu",
-    "hero.lv.en": "Angl\xE8s: C1",
-    "hero.mail": "escriu-me",
-    "hero.cta": "veure projectes",
-    "hero.photoAlt": "Foto d'Enric Masella amb ulleres de sol platejades. En moure el cursor per sobre apareix una radiografia de la mateixa foto."
-  }
-};
 // LANG_NAMES importado de translations.js
 var mm = (query) => window.matchMedia(query).matches;
 function mount(slot) {
@@ -1079,7 +1093,7 @@ function mount(slot) {
     offs.push(() => target.removeEventListener(type, fn, opts));
   };
   qa("[data-bracket]").forEach((el) => el.insertAdjacentHTML("beforeend", bracketCorners()));
-  q("[data-map-path]").setAttribute("d", TRACK_MINI_D);
+  q("[data-hero-projects]").innerHTML = PROJECTS.map((pr) => `<li><i class="pdot${pr.live ? " pdot--live" : ""}" aria-hidden="true"></i><span class="panel__pname">${esc(pr.name)}</span><span class="sr-only" data-i18n="${pr.live ? "hero.p1.live" : "hero.p1.dev"}"></span></li>`).join("");
   q("[data-github]").href = SITE.github;
   q("[data-mail]").href = `mailto:${SITE.email}`;
   q("[data-mail-host]").textContent = SITE.email;
@@ -1276,11 +1290,6 @@ function mount(slot) {
 }
 
 // src/dock.js
-var strings3 = {
-  en: { "nav.index": "index" },
-  es: { "nav.index": "inicio" },
-  ca: { "nav.index": "inici" }
-};
 var ITEMS = [{ key: "nav.index", id: "top" }, ...NAV];
 var ORDER = ITEMS.map((it) => it.id);
 var TZ = "Europe/Madrid";
@@ -1411,13 +1420,10 @@ function mountDock() {
 // src/blocks/season/index.js
 var season_exports = {};
 __export(season_exports, {
-  mount: () => mount2,
-  strings: () => strings4
+  mount: () => mount2
 });
 
 // src/blocks/season/markup.html
-var markup_default2 = '<section class="sw" data-season aria-labelledby="sw-title">\n  <div class="sw__stage" data-stage data-recede>\n    <div class="sw__field" data-field aria-hidden="true"></div>\n\n    <div class="sw__tick sw__tick--top" aria-hidden="true"><div class="sw__tick-track" data-tick="0"></div></div>\n    <div class="sw__tick sw__tick--bottom" aria-hidden="true"><div class="sw__tick-track" data-tick="1"></div></div>\n\n    <header class="sw__hud sw__hud--top" aria-hidden="true">\n      <span class="sw__tag">[ <span data-i18n="season.head1"></span> ]</span>\n      <span class="sw__fill">////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////</span>\n      <span class="sw__count"><b data-count>001</b>/003</span>\n    </header>\n\n    <div class="sw__slides">\n      <!-- the title -->\n      <article class="sw__slide sw__slide--title" data-slide="0">\n        <div class="sw__in">\n          <p class="sw__eyebrow" data-scrub="eyebrow0"></p>\n          <h2 class="sw__title" id="sw-title">\n            <span class="sw__t-line" data-i18n="season.head1"></span>\n            <span class="sw__t-line"><span data-i18n="season.head2"></span><span class="sw__dot" aria-hidden="true">.</span></span>\n          </h2>\n          <p class="sw__intro" data-scrub="intro"></p>\n        </div>\n      </article>\n\n      <!-- 001 \u2014 the live project -->\n      <article class="sw__slide sw__slide--case" data-slide="1" aria-labelledby="sw-name-1">\n        <div class="sw__in sw__in--split">\n          <div class="sw__col">\n            <p class="sw__eyebrow" data-scrub="eyebrow1"></p>\n            <h3 class="sw__name" id="sw-name-1">__NAME__</h3>\n            <p class="sw__live"><i class="sw__led" data-led aria-hidden="true"></i><span data-scrub="live"></span></p>\n          </div>\n          <div class="sw__col sw__col--file">\n            <div class="sw__file bracket">\n              __CORNERS__\n              <p class="sw__file-head" data-scrub="path1"></p>\n              <dl class="sw__rows">\n                <div><dt data-i18n="season.k.site"></dt><dd data-scrub="site"></dd></div>\n                <div><dt data-i18n="season.k.role"></dt><dd data-scrub="role"></dd></div>\n                <div><dt data-i18n="season.k.stack"></dt><dd data-scrub="stack"></dd></div>\n              </dl>\n              <dl class="sw__figs">\n                <div class="sw__fig"><dt data-i18n="season.stat.gp"></dt><dd class="sw__fig-n" data-count-to="gp"></dd></div>\n                <div class="sw__fig"><dt data-i18n="season.stat.class"></dt><dd class="sw__fig-n" data-count-to="class"></dd></div>\n              </dl>\n            </div>\n            <a class="sw__go" href="#project" data-scrub="go"></a>\n          </div>\n        </div>\n      </article>\n\n      <!-- 002 \u2014 what comes next -->\n      <article class="sw__slide sw__slide--next" data-slide="2" aria-labelledby="sw-name-2">\n        <div class="sw__in sw__in--split">\n          <div class="sw__col">\n            <p class="sw__eyebrow" data-scrub="eyebrow2"></p>\n            <h3 class="sw__name" id="sw-name-2" data-soon-a></h3>\n            <p class="sw__soon"><span data-scrub="soon"></span><i class="sw__caret" data-caret aria-hidden="true"></i></p>\n          </div>\n          <div class="sw__col sw__col--file" aria-hidden="true">\n            <div class="sw__file sw__file--empty bracket">\n              __CORNERS__\n              <p class="sw__file-head" data-scrub="path2"></p>\n              <dl class="sw__rows">\n                <div><dt data-i18n="season.k.site"></dt><dd>________________</dd></div>\n                <div><dt data-i18n="season.k.role"></dt><dd>________</dd></div>\n                <div><dt data-i18n="season.k.stack"></dt><dd>____________</dd></div>\n              </dl>\n            </div>\n          </div>\n        </div>\n      </article>\n    </div>\n\n    <div class="sw__scan" data-scan aria-hidden="true">\n      <span class="sw__scan-noise" data-scan-noise></span>\n      <span class="sw__scan-read" data-scan-read>scan 000</span>\n    </div>\n\n    <footer class="sw__hud sw__hud--bottom" aria-hidden="true">\n      <div class="sw__chap">\n        <span class="sw__seg" data-seg="0" style="flex-grow:31"><em data-chap="0"></em><i></i></span>\n        <span class="sw__seg" data-seg="1" style="flex-grow:38"><em>001</em><i></i></span>\n        <span class="sw__seg" data-seg="2" style="flex-grow:31"><em>002</em><i></i></span>\n      </div>\n      <span class="sw__hint"><span data-i18n="season.scroll"></span>\n        <svg viewBox="0 0 9 13" width="9" height="13" focusable="false"><path d="M4.5 0V12M0.5 8l4 4 4-4"/></svg></span>\n    </footer>\n  </div>\n</section>\n';
-
 // src/dissolve.js
 var SIZE = 12;
 var ADVANCE = 0.612;
@@ -1509,104 +1515,119 @@ function mountDissolve(host) {
 }
 
 // src/blocks/season/index.js
-var STEPS = 3;
-var CUTS = [0.31, 0.69];
-var HALF = 0.07;
-var REST = [0, 0.5, 0.95];
+var SLIDES = 1 + PROJECTS.length;
+var STEPS = SLIDES;
+var CUTS = Array.from({ length: SLIDES - 1 }, (_, i) => (i + 1) / SLIDES);
+var HALF = 0.21 / STEPS;
+var REST = [0, ...Array.from({ length: SLIDES - 2 }, (_, i) => (i + 1.5) / SLIDES), 0.95];
 var NOISE3 = ".:+#/\\|<>[]=%$@0123456789";
-var KEYWORDS = ["PHP", "React", "TypeScript", "SQL", "C#", "JavaScript"].filter((k) => [...CV.core, ...CV.learned].includes(k));
-var strings4 = {
-  en: {
-    "season.head1": "selected work",
-    "season.head2": "so far",
-    "season.intro": "Every project is a step forward. One is live today; the next ones will land here.",
-    "season.index.label": "Projects",
-    "season.index.soon": "More projects \u2014 coming soon",
-    "season.plate.eyebrow": "web development",
-    "season.stat.gp": "grands prix",
-    "season.stat.class": "classifications",
-    "season.scroll": "scroll",
-    "season.k.site": "site",
-    "season.k.role": "role",
-    "season.k.stack": "stack",
-    "season.v.live": `live, ${PKC.season}`,
-    "season.v.role": "built end to end"
-  },
-  es: {
-    "season.head1": "trabajo destacado",
-    "season.head2": "hasta ahora",
-    "season.intro": "Cada proyecto es un paso adelante. Hoy hay uno publicado; los siguientes ir\xE1n apareciendo aqu\xED.",
-    "season.index.label": "Proyectos",
-    "season.index.soon": "M\xE1s proyectos \u2014 pr\xF3ximamente",
-    "season.plate.eyebrow": "desarrollo web",
-    "season.stat.gp": "grandes premios",
-    "season.stat.class": "clasificaciones",
-    "season.scroll": "desliza",
-    "season.k.site": "web",
-    "season.k.role": "rol",
-    "season.k.stack": "stack",
-    "season.v.live": `publicado, ${PKC.season}`,
-    "season.v.role": "de principio a fin"
-  },
-  ca: {
-    "season.head1": "treball destacat",
-    "season.head2": "fins ara",
-    "season.intro": "Cada projecte \xE9s un pas endavant. Ara n'hi ha un de publicat; els seg\xFCents aniran apareixent aqu\xED.",
-    "season.index.label": "Projectes",
-    "season.index.soon": "M\xE9s projectes \u2014 aviat",
-    "season.plate.eyebrow": "programaci\xF3 web",
-    "season.stat.gp": "grans premis",
-    "season.stat.class": "classificacions",
-    "season.scroll": "llisca",
-    "season.k.site": "web",
-    "season.k.role": "rol",
-    "season.k.stack": "stack",
-    "season.v.live": `publicat, ${PKC.season}`,
-    "season.v.role": "de dalt a baix"
-  }
-};
-var split = (s) => {
-  const i = s.indexOf(" \u2014 ");
-  return i < 0 ? [s, ""] : [s.slice(0, i), s.slice(i + 3)];
-};
+var KEYWORDS = ["PHP", "SQL", "C#", "JavaScript", "Git", "Linux"];
 var pad2 = (n, w) => String(Math.max(0, Math.round(n))).padStart(w, "0");
+var fmtCount = (v, to) => to >= 100 ? fmtNum(v) : pad2(v, 2);
+var nameHTML = (p) => {
+  const [first, ...rest] = p.name.split(" ");
+  return (rest.length ? [first, rest.join(" ")] : [first]).map((l) => `<span class="sw__n-line">${esc(l)}</span>`).join(" ");
+};
+var caseSlide = (p, i) => {
+  const n = i + 1;
+  return `
+      <article class="sw__slide sw__slide--case" data-slide="${n}" data-project="${p.id}" aria-labelledby="sw-name-${n}">
+        <div class="sw__in sw__in--split">
+          <div class="sw__col">
+            <p class="sw__eyebrow" data-scrub="eyebrow${n}"></p>
+            <h3 class="sw__name" id="sw-name-${n}">${nameHTML(p)}</h3>
+            <p class="sw__live"><i class="sw__led${p.live ? "" : " sw__led--dev"}" data-led aria-hidden="true"></i><span data-scrub="live${n}"></span></p>
+          </div>
+          <div class="sw__col sw__col--file">
+            <div class="sw__file bracket">
+              ${bracketCorners()}
+              <p class="sw__file-head" data-scrub="path${n}"></p>
+              <dl class="sw__rows">
+                <div><dt data-i18n="season.k.type"></dt><dd data-scrub="type${n}"></dd></div>
+                <div><dt data-i18n="season.k.stack"></dt><dd data-scrub="stack${n}"></dd></div>
+                <div><dt data-i18n="season.k.access"></dt><dd data-scrub="access${n}"></dd></div>
+              </dl>
+              <dl class="sw__figs">${p.figs.map((f, j) => `
+                <div class="sw__fig"><dt data-i18n="${f.label}"></dt>${f.n != null ? `<dd class="sw__fig-n" data-count-to="${n}.${j}"></dd>` : `<dd class="sw__fig-n sw__fig-n--word" data-scrub="fig${n}_${j}"></dd>`}</div>`).join("")}
+              </dl>
+            </div>
+            <a class="sw__go" href="#project" data-project-link="${p.id}" data-scrub="go${n}"></a>
+          </div>
+        </div>
+      </article>`;
+};
+var seasonMarkup = () => `<section class="sw" data-season aria-labelledby="sw-title">
+  <div class="sw__stage" data-stage data-recede>
+    <div class="sw__field" data-field aria-hidden="true"></div>
+
+    <div class="sw__tick sw__tick--top" aria-hidden="true"><div class="sw__tick-track" data-tick="0"></div></div>
+    <div class="sw__tick sw__tick--bottom" aria-hidden="true"><div class="sw__tick-track" data-tick="1"></div></div>
+
+    <header class="sw__hud sw__hud--top" aria-hidden="true">
+      <span class="sw__tag">[ <span data-i18n="season.head1"></span> ]</span>
+      <span class="sw__fill">${"/".repeat(140)}</span>
+      <span class="sw__count"><b data-count>001</b>/${pad2(SLIDES, 3)}</span>
+    </header>
+
+    <div class="sw__slides">
+      <article class="sw__slide sw__slide--title" data-slide="0">
+        <div class="sw__in">
+          <p class="sw__eyebrow" data-scrub="eyebrow0"></p>
+          <h2 class="sw__title" id="sw-title">
+            <span class="sw__t-line" data-i18n="season.head1"></span>
+            <span class="sw__t-line"><span data-i18n="season.head2"></span><span class="sw__dot" aria-hidden="true">.</span></span>
+          </h2>
+          <p class="sw__intro" data-scrub="intro"></p>
+        </div>
+      </article>
+      ${PROJECTS.map(caseSlide).join("")}
+    </div>
+
+    <div class="sw__scan" data-scan aria-hidden="true">
+      <span class="sw__scan-noise" data-scan-noise></span>
+      <span class="sw__scan-read" data-scan-read>scan 000</span>
+    </div>
+
+    <footer class="sw__hud sw__hud--bottom" aria-hidden="true">
+      <div class="sw__chap">${Array.from({ length: SLIDES }, (_, i) => `
+        <span class="sw__seg" data-seg="${i}" style="flex-grow:${Math.round(100 / SLIDES)}"><em${i ? "" : " data-chap=\"0\""}>${i ? pad2(i, 3) : ""}</em><i></i></span>`).join("")}
+      </div>
+      <span class="sw__hint"><span data-i18n="season.scroll"></span>
+        <svg viewBox="0 0 9 13" width="9" height="13" focusable="false"><path d="M4.5 0V12M0.5 8l4 4 4-4"/></svg></span>
+    </footer>
+  </div>
+</section>
+`;
+// Each text/figure of a project's slide appears over a stretch of the scroll, given as a fraction of that slide's own window.
+var FR = { eyebrow: [-0.158, 0.053], live: [-0.053, 0.158], path: [-0.105, 0.105], type: [0.026, 0.289], stack: [0.105, 0.368], access: [0.184, 0.5], go: [0.395, 0.605], fig0: [0.158, 0.5], fig1: [0.263, 0.605] };
+var rangeAt = (n, k) => [(n + FR[k][0]) / SLIDES, (n + FR[k][1]) / SLIDES];
 var TEXT = {
   eyebrow0: () => ({ text: `// ${t("season.index.label").toLowerCase()}`, sr: "" }),
-  intro: () => ({ text: t("season.intro") }),
-  eyebrow1: () => ({ text: `001 // ${t("season.plate.eyebrow")}`, sr: t("season.plate.eyebrow") }),
-  live: () => ({ text: t("season.v.live") }),
-  path1: () => ({ text: "~/work/001", sr: "" }),
-  site: () => ({ text: PKC.host }),
-  role: () => ({ text: t("season.v.role") }),
-  stack: () => ({ text: [t("paddock.s1.name"), "PHP", "React", "SEO"].join(" \xB7 ").toLowerCase() }),
-  go: () => {
-    const label = `${t("paddock.head1")} ${t("paddock.head2")}`;
-    return { text: `[ ${label} -> ]`, sr: label };
-  },
-  eyebrow2: () => ({ text: `002 // ${t("timeline.r7.label")}`, sr: "" }),
-  soon: () => ({ text: split(t("season.index.soon"))[1] }),
-  path2: () => ({ text: "~/work/002", sr: "" })
+  intro: () => ({ text: t("season.intro") })
 };
-var RANGE = {
-  eyebrow1: [0.25, 0.33],
-  live: [0.29, 0.37],
-  path1: [0.27, 0.35],
-  site: [0.32, 0.42],
-  role: [0.35, 0.45],
-  stack: [0.38, 0.5],
-  go: [0.46, 0.54],
-  eyebrow2: [0.63, 0.71],
-  soon: [0.67, 0.77],
-  path2: [0.65, 0.73]
-};
-var COUNT = { gp: { to: PKC.gp, range: [0.37, 0.5] }, class: { to: PKC.classifications.length, range: [0.41, 0.54] } };
-var nameHTML = () => {
-  const [first, ...rest] = PKC.name.split(" ");
-  return `<span class="sw__n-line">${esc(first)}</span> <span class="sw__n-line">${esc(rest.join(" "))}</span>`;
-};
+var RANGE = {};
+var COUNT = {};
+PROJECTS.forEach((p, i) => {
+  const n = i + 1;
+  TEXT[`eyebrow${n}`] = () => ({ text: `${pad2(n, 3)} // ${t(`proj.${p.id}.area`)}`, sr: t(`proj.${p.id}.area`) });
+  TEXT[`live${n}`] = () => ({ text: statusOf(p) });
+  TEXT[`path${n}`] = () => ({ text: `~/work/${pad2(n, 3)}`, sr: "" });
+  TEXT[`type${n}`] = () => ({ text: t(`proj.${p.id}.type`) });
+  TEXT[`stack${n}`] = () => ({ text: p.stack().join(" \xB7 ").toLowerCase() });
+  TEXT[`access${n}`] = () => ({ text: p.live ? p.host : t("access.private") });
+  TEXT[`go${n}`] = () => ({ text: `[ ${t("season.go")} -> ]`, sr: t("season.go") });
+  for (const k of ["eyebrow", "live", "path", "type", "stack", "access", "go"]) RANGE[`${k}${n}`] = rangeAt(n, k);
+  p.figs.forEach((f, j) => {
+    if (f.n != null) COUNT[`${n}.${j}`] = { to: f.n, range: rangeAt(n, `fig${j}`) };
+    else {
+      TEXT[`fig${n}_${j}`] = () => ({ text: figText(f) });
+      RANGE[`fig${n}_${j}`] = rangeAt(n, `fig${j}`);
+    }
+  });
+});
 function mount2(slot) {
   const still = reduced();
-  slot.innerHTML = markup_default2.replaceAll("__CORNERS__", bracketCorners()).replace("__NAME__", nameHTML());
+  slot.innerHTML = seasonMarkup();
   const root = slot.querySelector("[data-season]");
   const stage = root.querySelector("[data-stage]");
   const layer = slot.closest(".layer");
@@ -1637,7 +1658,6 @@ function mount2(slot) {
     return { el, sr: el.querySelector(".sr-only"), vis: el.querySelector(".sw__s"), to: spec.to, range: spec.range, mark: "" };
   });
   const byKey = (k) => items.find((it) => it.key === k);
-  const soonEl = root.querySelector("[data-soon-a]");
   const chapEl = root.querySelector("[data-chap='0']");
   const ticks2 = [...root.querySelectorAll("[data-tick]")];
   const tickUnit = [
@@ -1664,6 +1684,17 @@ function mount2(slot) {
     for (const line of titleEl.querySelectorAll(".sw__t-line")) widest = Math.max(widest, line.scrollWidth);
     if (avail > 0 && widest > avail) titleEl.style.fontSize = `${(parseFloat(getComputedStyle(titleEl).fontSize) * (avail / widest) * 0.985).toFixed(2)}px`;
   };
+  // A project name that is wider than its column shrinks to fit; it never wraps mid-word and never spills.
+  const nameEls = [...root.querySelectorAll(".sw__name")];
+  const fitNames = () => {
+    for (const el of nameEls) {
+      el.style.fontSize = "";
+      const avail = el.parentElement.clientWidth;
+      let widest = 0;
+      for (const line of el.querySelectorAll(".sw__n-line")) widest = Math.max(widest, line.scrollWidth);
+      if (avail > 0 && widest > avail) el.style.fontSize = `${(parseFloat(getComputedStyle(el).fontSize) * (avail / widest) * 0.985).toFixed(2)}px`;
+    }
+  };
   const fill = () => {
     for (const it of items) {
       const { text, sr = text } = TEXT[it.key]();
@@ -1672,13 +1703,13 @@ function mount2(slot) {
       it.mark = "";
     }
     for (const c of counters) {
-      c.sr.textContent = String(c.to);
+      c.sr.textContent = fmtNum(c.to);
       c.mark = "";
     }
-    soonEl.textContent = split(t("season.index.soon"))[0];
     chapEl.textContent = t("nav.index");
     fillTicks();
     fitTitle();
+    fitNames();
   };
   fill();
   offs.push(onLang(() => {
@@ -1696,7 +1727,7 @@ function mount2(slot) {
   }));
   function paintStatic() {
     for (const it of items) it.vis.textContent = it.full;
-    for (const c of counters) c.vis.textContent = pad2(c.to, 2);
+    for (const c of counters) c.vis.textContent = fmtCount(c.to, c.to);
   }
   let entryDone = false, entryStops = [];
   const settleEntry = () => {
@@ -1727,7 +1758,8 @@ function mount2(slot) {
   parts.push({ destroy() {
     entryStops.forEach((stop) => stop());
   } });
-  const stops = [blink(root.querySelector("[data-led]"), 640), blink(root.querySelector("[data-caret]"), 530)];
+  // only the live project's LED blinks; the others are hollow and still
+  const stops = [...root.querySelectorAll("[data-led]:not(.sw__led--dev)")].map((el) => blink(el, 640));
   parts.push({ destroy() {
     stops.forEach((s) => s());
   } });
@@ -1740,14 +1772,14 @@ function mount2(slot) {
   const segFill = segs.map((s) => s.querySelector("i"));
   const segLabel = segs.map((s) => s.querySelector("em"));
   const wipe = (i, p) => easeInOutSine(clamp01((p - (CUTS[i] - HALF)) / (2 * HALF)));
-  const slideAt = (p) => p < CUTS[0] ? 0 : p < CUTS[1] ? 1 : 2;
+  const slideAt = (p) => CUTS.filter((c) => p >= c).length;
   let pd = 0, shown = -1, cur = 0, noiseAt = 0, countCancel = () => {
   };
-  const clips = ["", "", ""], events = ["", "", ""];
+  const clips = slides.map(() => ""), events = slides.map(() => "");
   function paint(p, force = false) {
-    const y = [wipe(0, p), wipe(1, p)];
-    for (let s = 0; s < 3; s += 1) {
-      const top = s < 2 ? y[s] : 0;
+    const y = CUTS.map((_, i) => wipe(i, p));
+    for (let s = 0; s < SLIDES; s += 1) {
+      const top = s < SLIDES - 1 ? y[s] : 0;
       const bottom = s > 0 ? y[s - 1] : 1;
       const clip = bottom - top <= 5e-4 ? "inset(100% 0 0 0)" : `inset(${(top * 100).toFixed(2)}% 0 ${((1 - bottom) * 100).toFixed(2)}% 0)`;
       if (force || clip !== clips[s]) {
@@ -1760,7 +1792,7 @@ function mount2(slot) {
         events[s] = ev;
       }
     }
-    const live = y[0] > 0 && y[0] < 1 ? y[0] : y[1] > 0 && y[1] < 1 ? y[1] : -1;
+    const live = y.find((v) => v > 0 && v < 1) ?? -1;
     if (live >= 0) {
       scan.style.opacity = "1";
       scan.style.transform = `translate3d(0, ${(live * stageH).toFixed(1)}px, 0)`;
@@ -1782,7 +1814,7 @@ function mount2(slot) {
       else countEl.textContent = pad2(cur + 1, 3);
       segLabel.forEach((el, i) => el.classList.toggle("is-on", i === cur));
     }
-    const bounds = [0, CUTS[0], CUTS[1], 1];
+    const bounds = [0, ...CUTS, 1];
     segFill.forEach((el, i) => {
       el.style.transform = `scaleX(${clamp01((p - bounds[i]) / (bounds[i + 1] - bounds[i])).toFixed(4)})`;
     });
@@ -1805,7 +1837,7 @@ function mount2(slot) {
       const mark = String(v);
       if (!force && mark === c.mark) continue;
       c.mark = mark;
-      c.vis.textContent = pad2(v, 2);
+      c.vis.textContent = fmtCount(v, c.to);
     }
     shown = p;
   }
@@ -1829,17 +1861,30 @@ function mount2(slot) {
     offs.push(onResize(() => {
       fillTicks();
       fitTitle();
+      fitNames();
       paint(pd, true);
     }));
     if (document.fonts?.ready) document.fonts.ready.then(() => {
       fillTicks();
       fitTitle();
+      fitNames();
       paint(pd, true);
     });
   } else {
-    offs.push(onResize(fitTitle));
-    if (document.fonts?.ready) document.fonts.ready.then(fitTitle);
+    offs.push(onResize(() => {
+      fitTitle();
+      fitNames();
+    }));
+    if (document.fonts?.ready) document.fonts.ready.then(() => {
+      fitTitle();
+      fitNames();
+    });
   }
+  // "project details" opens the viewer on that project (the page scroll itself is the global anchor handler's job)
+  on(root, "click", (e) => {
+    const a = e.target.closest?.("[data-project-link]");
+    if (a) window.dispatchEvent(new CustomEvent("portfolio:project", { detail: a.dataset.projectLink }));
+  });
   on(root, "focusin", (e) => {
     if (still || !layer) return;
     const slide = e.target.closest?.("[data-slide]");
@@ -1870,11 +1915,11 @@ function mount2(slot) {
   };
 }
 
+
 // src/blocks/timeline/index.js
 var timeline_exports = {};
 __export(timeline_exports, {
-  mount: () => mount3,
-  strings: () => strings5
+  mount: () => mount3
 });
 
 // src/blocks/timeline/markup.html
@@ -1955,33 +2000,6 @@ var frontendArt = () => svg(333, 217, `
   <path class="s-steel" d="M156 156H182M156 164H174M156 172H180"/>
   <rect class="s-mid" x="204" y="142" width="46" height="42" rx="5" stroke-dasharray="3 3"/>
   <rect class="s-faint" x="262" y="142" width="40" height="42" rx="5" stroke-dasharray="3 3"/>`);
-var protecsolArt = () => {
-  let cards = "";
-  for (let i = 0; i < 8; i += 1) {
-    const x = 104 + i % 4 * 78, y = 232 + Math.floor(i / 4) * 54;
-    cards += `<rect class="s-mid" x="${x}" y="${y}" width="68" height="44" rx="3"/><rect class="f-steel" x="${x + 8}" y="${y + 9}" width="30" height="4" rx="2" opacity=".75"/><rect class="f-faint" x="${x + 8}" y="${y + 19}" width="46" height="3" rx="1.5"/><rect class="${i === 2 ? "f-acc" : "f-faint"}" x="${x + 8}" y="${y + 29}" width="12" height="6" rx="1"/>`;
-  }
-  let rows = "";
-  for (let i = 0; i < 5; i += 1) rows += `<rect class="f-faint" x="426" y="${244 + i * 17}" width="150" height="3" rx="1.5"/><rect class="${i === 0 ? "f-acc" : "f-steel"}" x="426" y="${251 + i * 17}" width="${100 - i * 12}" height="3" rx="1.5" opacity="${i === 0 ? 1 : 0.5}"/>`;
-  return svg(710, 462, `
-  <rect class="s-mid" x="88" y="46" width="534" height="368" rx="8"/>
-  <path class="s-mid" d="M88 78H622"/>
-  <circle class="f-steel" cx="106" cy="62" r="3.5" opacity=".6"/><circle class="f-steel" cx="120" cy="62" r="3.5" opacity=".6"/><circle class="f-steel" cx="134" cy="62" r="3.5" opacity=".6"/>
-  <rect class="s-faint" x="214" y="53" width="282" height="18" rx="9"/>
-  <text class="art-url" x="355" y="66" text-anchor="middle">protecsolkartingcup.com</text>
-  <rect class="f-acc" x="104" y="92" width="26" height="9" rx="1.5"/>
-  <path class="s-steel" d="M470 96H488M504 96H522M538 96H556M572 96H604"/>
-  <rect class="f-faint" x="104" y="116" width="518" height="62" opacity=".55"/>
-  <rect class="f-white" x="120" y="128" width="150" height="9" rx="2"/>
-  <rect class="f-steel" x="120" y="144" width="96" height="5" rx="2.5" opacity=".7"/>
-  <rect class="s-acc" x="120" y="156" width="64" height="14" rx="2"/>
-  <path class="s-mid" d="M104 198H622"/>
-  <rect class="f-acc" x="104" y="206" width="38" height="12" rx="6"/>
-  <rect class="s-steel" x="148" y="206" width="44" height="12" rx="6"/><rect class="s-steel" x="198" y="206" width="38" height="12" rx="6"/><rect class="s-steel" x="242" y="206" width="46" height="12" rx="6"/><rect class="s-steel" x="294" y="206" width="52" height="12" rx="6"/>
-  ${cards}
-  ${rows}
-  <path class="s-mid" d="M418 232V340"/>`);
-};
 var mapArt = () => {
   let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
   for (const [x, y] of CIRCUIT_PATH) {
@@ -2021,23 +2039,71 @@ var mapArt = () => {
   </g>
   <path class="s-mid" d="M92 112H114M103 101V123M596 96H618M607 85V107M552 176H568M560 168V184"/>`);
 };
-var list = (cls, items) => `<ul class="${cls}">${items.map((x) => `<li>${x}</li>`).join("")}</ul>`;
+var list = (cls, items) => `<ul class="${cls}">${items.map((x) => `<li>${esc(x)}</li>`).join("")}</ul>`;
+// skills: what he has worked with, by category (centre plate, real text — it is read, not just looked at)
 var skillsArt = () => `
-  <div class="tl__skills">
-    ${list("tl__skills-core", CV.core)}
-    <div class="tl__skills-bottom">
-      <p class="tl__skills-label" data-i18n="timeline.skills.through"></p>
-      ${list("tl__skills-more", CV.learned)}
+  <div class="tl__skills tl__skills--grid">
+    <p class="tl__sk-tag" data-i18n="skills.worked"></p>
+    <div class="tl__sk-grid">${SKILLS.worked.map((g) => `
+      <div class="tl__sk">
+        <p class="tl__sk-cat" data-i18n="skills.cat.${g.cat}"></p>
+        ${list("tl__sk-items", g.items)}
+      </div>`).join("")}
     </div>
   </div>`;
-var toolsArt = () => `
+// exploring: what he is still learning (side plate)
+var exploringArt = () => `
   <div class="tl__skills">
-    ${list("tl__skills-core", CV.tools)}
+    ${list("tl__skills-core", SKILLS.exploring.flatMap((g) => g.items))}
     <div class="tl__skills-bottom">
-      <p class="tl__skills-label" data-i18n="timeline.tools.also"></p>
-      ${list("tl__skills-more", CV.alsoTools)}
+      <p class="tl__skills-label" data-i18n="skills.exploringNote"></p>
     </div>
   </div>`;
+// projects: one small line drawing per project, the live one in red, the others dashed (in development)
+var miniPkc = () => `
+  <path class="s-mid" d="M0 18H258"/>
+  <circle class="f-steel" cx="12" cy="9" r="2.5" opacity=".6"/><circle class="f-steel" cx="22" cy="9" r="2.5" opacity=".6"/><circle class="f-steel" cx="32" cy="9" r="2.5" opacity=".6"/>
+  <rect class="f-acc" x="14" y="28" width="16" height="6" rx="1"/>
+  <rect class="f-white" x="14" y="44" width="92" height="9" rx="2"/>
+  <rect class="f-steel" x="14" y="60" width="60" height="5" rx="2.5" opacity=".7"/>
+  <rect class="s-acc" x="14" y="76" width="46" height="12" rx="2"/>
+  <g transform="translate(150 28) scale(1.3)"><path class="s-acc" d="${TRACK_MINI_D}"/></g>`;
+var miniChess = () => {
+  let sq = "";
+  for (let r = 0; r < 4; r += 1) for (let c = 0; c < 4; c += 1) if ((r + c) % 2) sq += `<rect class="f-faint" x="${20 + c * 24}" y="${14 + r * 24}" width="24" height="24"/>`;
+  let rows = "";
+  for (let i = 0; i < 4; i += 1) rows += `<rect class="${i < 2 ? "f-acc" : "s-steel"}" x="148" y="${24 + i * 22}" width="11" height="11"/><rect class="f-faint" x="170" y="${27 + i * 22}" width="${80 - i * 12}" height="4" rx="2"/>`;
+  return `${sq}<rect class="s-mid" x="20" y="14" width="96" height="96"/>
+  <path class="s-acc" d="M32 98L56 74H80L104 26" stroke-width="2"/>
+  <circle class="f-acc" cx="32" cy="98" r="3.5"/><circle class="f-acc" cx="56" cy="74" r="3.5"/><circle class="f-acc" cx="80" cy="74" r="3.5"/><circle class="f-acc" cx="104" cy="26" r="3.5"/>${rows}`;
+};
+var miniUni = () => {
+  let keys = "";
+  for (let r = 0; r < 2; r += 1) for (let c = 0; c < 4; c += 1) keys += `<rect class="${r === 1 && c === 3 ? "f-acc" : "s-faint"}" x="${56 + c * 37}" y="${56 + r * 24}" width="32" height="18" rx="2"/>`;
+  return `<rect class="s-mid" x="44" y="10" width="170" height="96" rx="4"/>
+  <rect class="s-steel" x="56" y="20" width="146" height="24" rx="3"/>
+  <rect class="f-acc" x="148" y="28" width="44" height="8" rx="2"/>${keys}`;
+};
+var miniSnap = () => `
+  <rect class="s-mid" x="88" y="16" width="82" height="64" rx="3"/>
+  <path class="s-faint" d="M88 80L170 16"/>
+  <rect class="f-steel" x="154" y="64" width="8" height="8" opacity=".55"/><rect class="f-steel" x="146" y="68" width="8" height="8" opacity=".35"/><rect class="f-steel" x="162" y="56" width="8" height="8" opacity=".3"/><rect class="f-steel" x="170" y="72" width="8" height="8" opacity=".18"/>
+  <path class="s-faint" d="M47 36H88M47 90H88M170 36H211M170 90H211" stroke-dasharray="3 5"/>
+  <circle class="s-steel" cx="36" cy="36" r="11"/><circle class="s-steel" cx="36" cy="90" r="11"/><circle class="s-steel" cx="222" cy="90" r="11"/><circle class="f-acc" cx="222" cy="36" r="11"/>`;
+var projectsArt = () => {
+  const spots = [[88, 44], [364, 44], [88, 272], [364, 272]];
+  const minis = { pkc: miniPkc, chess: miniChess, uni: miniUni, snap: miniSnap };
+  const cells = PROJECTS.map((p, i) => `
+  <g transform="translate(${spots[i][0]} ${spots[i][1]})">
+    <rect class="${p.live ? "s-acc" : "s-mid"}" width="258" height="140" rx="4"${p.live ? "" : ' stroke-dasharray="4 4"'}/>
+    ${minis[p.id]()}
+    <path class="s-mid" d="M0 114H258"/>
+    <text class="art-note${p.live ? " art-note--acc" : ""}" x="14" y="132">${esc(p.name.toUpperCase())}</text>
+    <circle class="${p.live ? "f-acc" : "s-steel"}" cx="242" cy="127" r="4"/>
+  </g>`).join("");
+  return svg(710, 462, `<path class="s-faint" d="${corners(710, 462, 40, 22)}"/>${cells}`);
+};
+
 
 // src/blocks/timeline/index.js
 var ROW_HEIGHT = { side: 217, centre: 462 };
@@ -2052,110 +2118,18 @@ var MARK_SIZE_NARROW = 20;
 var cqw = (px) => `${(px / 1440 * 100).toFixed(4)}cqw`;
 var ROWS = [
   { k: "r1", frame: "centre", art: studiesArt, img: true },
-  { k: "r2", frame: "side", align: "right", art: skillsArt, id: "skills" },
+  { k: "r2", frame: "centre", art: skillsArt, id: "skills", dense: true },
   { k: "r3", frame: "centre", art: languagesArt, img: true },
   { k: "r4", frame: "side", align: "left", art: frontendArt, img: true },
-  { k: "r5", frame: "centre", art: protecsolArt, img: true, shot: true },
-  { k: "r6", frame: "side", align: "right", art: toolsArt },
+  { k: "r5", frame: "centre", art: projectsArt, img: true },
+  { k: "r6", frame: "side", align: "right", art: exploringArt },
   { k: "r7", frame: "centre", art: mapArt, img: true }
 ];
 var heights = ROWS.map((r) => ROW_HEIGHT[r.frame]);
 var RAIL_HEIGHT = TOP_PAD + heights.reduce((a, b) => a + b, 0);
 var REST2 = TOP_PAD + heights.slice(0, -1).reduce((a, b) => a + b, 0) + heights[heights.length - 1] / 2 - MARK_RISE;
-var strings5 = {
-  en: {
-    "timeline.head1": "from learning",
-    "timeline.head2": "to building",
-    "timeline.listLabel": "The path so far",
-    "timeline.r1.label": "studies",
-    "timeline.r1.lead": "Learning by building.",
-    "timeline.r1.body": "Enric studies DAW (Web Application Development) and plans to continue into DAM. He picks up new technologies quickly and likes finding logical, efficient solutions to technical problems.",
-    "timeline.r1.alt": "Roadmap drawn as a diagram: DAW now, DAM planned next, on a grid",
-    "timeline.r2.label": "skills",
-    "timeline.r3.label": "languages",
-    "timeline.r3.lead": "Five languages.",
-    "timeline.r3.body": "Spanish and Catalan are native, English is C1, Italian is upper-intermediate and French intermediate.",
-    "timeline.r3.alt": "Five language codes \u2014 ES, CA, EN, IT and FR \u2014 each above a row of level markers, the fullest for Spanish and Catalan",
-    "timeline.r4.label": "frontend",
-    "timeline.r4.alt": "Sketch of interface components: a button, a toggle, a slider and a row of cards",
-    "timeline.r5.label": "protecsol",
-    "timeline.r5.lead": "A project built for a real championship.",
-    "timeline.r5.body": "Protecsol Karting Cup is the featured project: a full-stack site \u2014 database, PHP backend, React and TypeScript frontend, and SEO \u2014 for an amateur karting championship.",
-    "timeline.r5.alt": "Stylised wireframe of the Protecsol Karting Cup website: a calendar and standings",
-    "timeline.r5.shotAlt": "Protecsol Karting Cup website",
-    "timeline.r6.label": "tools",
-    "timeline.r7.label": "next",
-    "timeline.r7.lead": "What's next.",
-    "timeline.r7.body": "An internship to contribute from the first day and keep learning, then DAM on the way to a full-stack profile. New projects will be added here as they become official.",
-    "timeline.r7.alt": "A stylised circuit map seen from above, with one lap lit in red",
-    "timeline.skills.through": "learned on projects",
-    "timeline.tools.also": "and also",
-    "timeline.art.now": "now",
-    "timeline.art.planned": "planned"
-  },
-  es: {
-    "timeline.head1": "de aprender",
-    "timeline.head2": "a construir",
-    "timeline.listLabel": "Trayectoria hasta ahora",
-    "timeline.r1.label": "estudios",
-    "timeline.r1.lead": "Aprender construyendo.",
-    "timeline.r1.body": "Enric estudia DAW (Desarrollo de Aplicaciones Web) y piensa seguir con DAM. Aprende tecnolog\xEDas nuevas con facilidad y le gusta encontrar soluciones l\xF3gicas y eficientes a los problemas t\xE9cnicos.",
-    "timeline.r1.alt": "Hoja de ruta dibujada como diagrama: DAW ahora y DAM previsto despu\xE9s, sobre una cuadr\xEDcula",
-    "timeline.r2.label": "habilidades",
-    "timeline.r3.label": "idiomas",
-    "timeline.r3.lead": "Cinco idiomas.",
-    "timeline.r3.body": "Espa\xF1ol y catal\xE1n son nativos, el ingl\xE9s es C1, el italiano es de nivel intermedio-alto y el franc\xE9s, intermedio.",
-    "timeline.r3.alt": "Cinco c\xF3digos de idioma \u2014ES, CA, EN, IT y FR\u2014, cada uno sobre una fila de marcadores de nivel, la m\xE1s llena la del espa\xF1ol y el catal\xE1n",
-    "timeline.r4.label": "frontend",
-    "timeline.r4.alt": "Boceto de componentes de interfaz: un bot\xF3n, un interruptor, un deslizador y una fila de tarjetas",
-    "timeline.r5.label": "protecsol",
-    "timeline.r5.lead": "Un proyecto para un campeonato real.",
-    "timeline.r5.body": "Protecsol Karting Cup es el proyecto destacado: una web full-stack \u2014base de datos, backend en PHP, frontend en React y TypeScript, y SEO\u2014 para un campeonato de karting amateur.",
-    "timeline.r5.alt": "Esquema estilizado de la web de Protecsol Karting Cup: un calendario y las clasificaciones",
-    "timeline.r5.shotAlt": "Web de Protecsol Karting Cup",
-    "timeline.r6.label": "herramientas",
-    "timeline.r7.label": "siguiente",
-    "timeline.r7.lead": "Lo que viene.",
-    "timeline.r7.body": "Unas pr\xE1cticas donde aportar desde el primer d\xEDa y seguir aprendiendo, y despu\xE9s DAM para avanzar hacia un perfil full-stack. Los nuevos proyectos se ir\xE1n a\xF1adiendo aqu\xED cuando sean oficiales.",
-    "timeline.r7.alt": "Un mapa estilizado de un circuito visto desde arriba, con una vuelta iluminada en rojo",
-    "timeline.skills.through": "aprendido en proyectos",
-    "timeline.tools.also": "y tambi\xE9n",
-    "timeline.art.now": "ahora",
-    "timeline.art.planned": "previsto"
-  },
-  ca: {
-    "timeline.head1": "d'aprendre",
-    "timeline.head2": "a construir",
-    "timeline.listLabel": "Traject\xF2ria fins ara",
-    "timeline.r1.label": "estudis",
-    "timeline.r1.lead": "Aprendre construint.",
-    "timeline.r1.body": "L'Enric estudia DAW (Desenvolupament d'Aplicacions Web) i pensa continuar amb DAM. Apr\xE8n tecnologies noves amb facilitat i li agrada trobar solucions l\xF2giques i eficients als problemes t\xE8cnics.",
-    "timeline.r1.alt": "Full de ruta dibuixat com a diagrama: DAW ara i DAM previst despr\xE9s, sobre una quadr\xEDcula",
-    "timeline.r2.label": "habilitats",
-    "timeline.r3.label": "idiomes",
-    "timeline.r3.lead": "Cinc idiomes.",
-    "timeline.r3.body": "Castell\xE0 i catal\xE0 s\xF3n natius, l'angl\xE8s \xE9s C1, l'itali\xE0 \xE9s de nivell intermedi-alt i el franc\xE8s, intermedi.",
-    "timeline.r3.alt": "Cinc codis d'idioma \u2014ES, CA, EN, IT i FR\u2014, cadascun sobre una fila de marcadors de nivell, la m\xE9s plena la del castell\xE0 i el catal\xE0",
-    "timeline.r4.label": "frontend",
-    "timeline.r4.alt": "Esb\xF3s de components d'interf\xEDcie: un bot\xF3, un interruptor, un lliscador i una fila de targetes",
-    "timeline.r5.label": "protecsol",
-    "timeline.r5.lead": "Un projecte per a un campionat real.",
-    "timeline.r5.body": "Protecsol Karting Cup \xE9s el projecte destacat: un lloc web full-stack \u2014base de dades, backend en PHP, frontend en React i TypeScript, i SEO\u2014 per a un campionat de karting amateur.",
-    "timeline.r5.alt": "Esquema estilitzat del lloc web de Protecsol Karting Cup: un calendari i les classificacions",
-    "timeline.r5.shotAlt": "Lloc web de Protecsol Karting Cup",
-    "timeline.r6.label": "eines",
-    "timeline.r7.label": "seg\xFCent",
-    "timeline.r7.lead": "El que ve.",
-    "timeline.r7.body": "Unes pr\xE0ctiques on aportar des del primer dia i continuar aprenent, i despr\xE9s DAM per avan\xE7ar cap a un perfil full-stack. Els nous projectes s'aniran afegint aqu\xED quan siguin oficials.",
-    "timeline.r7.alt": "Un mapa estilitzat d'un circuit vist des de dalt, amb una volta il\xB7luminada en vermell",
-    "timeline.skills.through": "apr\xE8s en projectes",
-    "timeline.tools.also": "i tamb\xE9",
-    "timeline.art.now": "ara",
-    "timeline.art.planned": "previst"
-  }
-};
 var rowHTML = (r, i) => `
-  <li class="tl__row tl__row--${r.frame}${r.align ? ` tl__row--${r.align}` : ""} ${i % 2 ? "is-odd" : "is-even"}" data-row="${i}"${r.id ? ` id="${r.id}" data-align="center"` : ""}>
+  <li class="tl__row tl__row--${r.frame}${r.align ? ` tl__row--${r.align}` : ""}${r.dense ? " tl__row--dense" : ""} ${i % 2 ? "is-odd" : "is-even"}" data-row="${i}"${r.id ? ` id="${r.id}" data-align="center"` : ""}>
     <div class="tl__layer tl__layer--plate" data-layer-plate>
       <div class="tl__plate" data-plate>
         <div class="tl__fill"><div class="tl__slot" data-slot><div class="tl__art"${r.img ? ` role="img" data-i18n-attr="aria-label:timeline.${r.k}.alt"` : ""} data-art>${r.art()}</div></div></div>
@@ -2284,23 +2258,6 @@ function mount3(slot) {
       plate.removeEventListener("pointerleave", onLeave);
     });
   });
-  let shotImg = null;
-  const shotRow = rowEls[ROWS.findIndex((r) => r.shot)];
-  (PKC_SCREENS_SHIPPED ? tryImage(PKC_SCREENS.calendar).then((img) => img || tryImage(PKC_SCREENS.home)) : Promise.resolve(null)).then((img) => {
-    if (!img || !shotRow || !root.isConnected) return;
-    const art = shotRow.querySelector("[data-art]");
-    art.removeAttribute("role");
-    art.removeAttribute("aria-label");
-    art.removeAttribute("data-i18n-attr");
-    art.textContent = "";
-    img.className = "tl__shot";
-    img.alt = t("timeline.r5.shotAlt");
-    art.append(img);
-    shotImg = img;
-  });
-  offs.push(onLang(() => {
-    if (shotImg) shotImg.alt = t("timeline.r5.shotAlt");
-  }));
   return {
     el: root,
     destroy() {
@@ -2315,13 +2272,10 @@ function mount3(slot) {
 // src/blocks/paddock/index.js
 var paddock_exports = {};
 __export(paddock_exports, {
-  mount: () => mount4,
-  strings: () => strings6
+  mount: () => mount4
 });
 
 // src/blocks/paddock/markup.html
-var markup_default4 = '<section class="pd" data-paddock aria-labelledby="pd-title">\n  <div class="pd__band" aria-hidden="true"></div>\n  <div class="pd__fig-layer" data-fig-layer>\n    <figure class="pd__figure" data-figure role="img" data-i18n-attr="aria-label:paddock.fig.alt">__FIGURE__</figure>\n  </div>\n  <div class="pd__melt" aria-hidden="true"></div>\n\n  <h2 class="pd__head" id="pd-title">\n    <span class="pd__line"><span class="pd__line-text" data-i18n="paddock.head1"></span></span>\n    <span class="pd__line"><span class="pd__line-text" data-i18n="paddock.head2"></span><span class="pd__stop" aria-hidden="true">.</span></span>\n  </h2>\n\n  <div class="pd__intro">\n    <p class="pd__report" data-report data-i18n="paddock.report"></p>\n    <div class="pd__action" data-action>\n      __CTA__\n      <p class="pd__credit" data-i18n="paddock.credit"></p>\n    </div>\n  </div>\n\n  <div class="pd__frame pd__frame--meet bracket" data-frame="meet" aria-hidden="true">__BRACKETS__</div>\n  <div class="pd__meet" data-meet>\n    <p class="pd__meet-name">__PKC_NAME__</p>\n    <p>__PKC_PLACE__</p>\n    <p data-i18n="paddock.meet.season"></p>\n  </div>\n\n  <div class="pd__frame pd__frame--stats bracket" data-frame="stats" aria-hidden="true">__BRACKETS__</div>\n  <ul class="pd__stats" data-stats>__STATS__</ul>\n\n  <ol class="pd__strip" data-strip data-i18n-attr="aria-label:paddock.strip.label">\n    __LINKS__\n    __CARDS__\n    __MARKERS__\n    <span class="pd__live-bracket" data-live-bracket aria-hidden="true">__LIVE_BRACKETS__</span>\n  </ol>\n</section>\n';
-
 // src/contours.js
 var LINE_SCALE = 3.8;
 var LINE_COUNT = 2.5;
@@ -2482,195 +2436,217 @@ var phoneCards = () => [0, 1, 2].map((n) => {
     ${bars([[74, y + 12, 62, 6], [74, y + 24, 40, 5], [46, y + 44, 90, 5], [46, y + 54, 56, 5]])}
   </g>`;
 }).join("");
-var figureSVG = () => `
-<svg class="pd__art" viewBox="0 0 946 816" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
+// The lower half of each drawing: PKC has its calendar and its rankings; the others get the shapes of what they actually do (still only shapes, no words or numbers).
+var fieldRows = () => Array.from({ length: 4 }, (_, i) => {
+  const y = 450 + i * 62;
+  return `<g>
+    ${bars([[84, y, 74 - i % 2 * 14, 6]])}
+    <rect class="${i === 3 ? "pf-line pf-line--hot" : "pf-line"}" x="84" y="${y + 14}" width="246" height="32" rx="4"/>
+    ${bars([[98, y + 26, 96 - i * 10, 6]])}
+  </g>`;
+}).join("");
+var resultCard = () => `<g>
+  <rect class="pf-line" x="352" y="450" width="264" height="232" rx="4"/>
+  ${bars([[372, 474, 72, 6]])}
+  <rect class="pf-fill" x="372" y="500" width="120" height="34" rx="3"/>
+  ${bars([[372, 556, 210, 6], [372, 572, 168, 6]])}
+  <path class="pf-hair" d="M372 604H596"/>
+  ${bars([[372, 622, 90, 6], [372, 640, 130, 6, "pf-bar pf-bar--hot"]])}
+</g>`;
+var playersRow = () => [0, 1, 2, 3].map((i) => `<circle class="${i === 0 ? "pf-dot pf-dot--hot" : "pf-dot"}" cx="${110 + i * 66}" cy="490" r="24"/>`).join("") + bars([[84, 538, 246, 6], [84, 554, 190, 6]]) + `<path class="pf-line" d="M84.5 590.5H330.5V660.5H84.5Z"/><path class="pf-hair" d="M84 625H330"/>` + bars([[98, 604, 70, 5], [98, 639, 110, 5]]);
+var guessRows = () => Array.from({ length: 5 }, (_, j) => {
+  const y = 450 + j * 46, hot = j === 1;
+  return `<g>
+    ${hot ? `<rect class="pf-wash" x="352" y="${y}" width="264" height="38"/><rect class="pf-fill" x="352" y="${y}" width="3" height="38"/>` : `<line class="pf-hair" x1="352" y1="${y + 38}" x2="616" y2="${y + 38}"/>`}
+    <circle class="${hot ? "pf-dot pf-dot--hot" : "pf-dot"}" cx="376" cy="${y + 19}" r="9"/>
+    ${bars([[398, y + 15, 120 - j * 12, 7]])}
+  </g>`;
+}).join("");
+var LOWER = {
+  pkc: () => `<text class="pf-t pf-muted" x="84" y="436" font-size="11" letter-spacing="1.6">CALENDAR</text>
+  <text class="pf-t pf-muted" x="352" y="436" font-size="11" letter-spacing="1.6">RANKINGS</text>${calendarRows()}${rankingRows()}`,
+  chess: () => `${calendarRows()}${rankingRows()}`,
+  uni: () => `${fieldRows()}${resultCard()}`,
+  snap: () => `${playersRow()}${guessRows()}`
+};
+// What sits beside the title in each project's drawing: the circuit, a board, a calculator, a game room. No words, only shapes.
+var MOTIFS = {
+  pkc: () => `<g transform="translate(404 214) scale(2.5)"><path class="pf-circuit" d="${TRACK_MINI_D}"/></g>`,
+  chess: () => {
+    let sq = "";
+    for (let r = 0; r < 8; r += 1) for (let c = 0; c < 8; c += 1) if ((r + c) % 2) sq += `<rect class="pf-sq" x="${420 + c * 24}" y="${200 + r * 24}" width="24" height="24"/>`;
+    return `${sq}<rect class="pf-line" x="420" y="200" width="192" height="192"/>
+    <path class="pf-circuit" d="M432 380L480 332H528L576 236"/>
+    <circle class="pf-fill" cx="432" cy="380" r="5"/><circle class="pf-fill" cx="480" cy="332" r="5"/><circle class="pf-fill" cx="528" cy="332" r="5"/><circle class="pf-fill" cx="576" cy="236" r="5"/>`;
+  },
+  uni: () => {
+    let keys = "";
+    for (let r = 0; r < 3; r += 1) for (let c = 0; c < 4; c += 1) keys += `<rect class="${r === 2 && c === 3 ? "pf-fill" : "pf-line"}" x="${442 + c * 37}" y="${266 + r * 38}" width="32" height="30" rx="3"/>`;
+    return `<rect class="pf-line" x="430" y="200" width="170" height="194" rx="8"/>
+    <rect class="pf-line" x="442" y="212" width="146" height="42" rx="4"/><rect class="pf-fill" x="524" y="228" width="52" height="12" rx="2"/>${keys}`;
+  },
+  snap: () => `<rect class="pf-line" x="470" y="216" width="120" height="96" rx="4"/>
+    <path class="pf-hair" d="M470 312L590 216"/>
+    <rect class="pf-sq pf-sq--dim" x="566" y="288" width="12" height="12"/><rect class="pf-sq pf-sq--dim" x="554" y="296" width="12" height="12" style="opacity:.6"/><rect class="pf-sq pf-sq--dim" x="578" y="276" width="12" height="12" style="opacity:.4"/>
+    <path class="pf-hair" d="M440 242H470M440 346H470M590 242H620M590 346H620" stroke-dasharray="3 5"/>
+    <circle class="pf-dot" cx="426" cy="242" r="14"/><circle class="pf-dot" cx="426" cy="346" r="14"/><circle class="pf-dot" cx="634" cy="346" r="14"/><circle class="pf-fill" cx="634" cy="242" r="14"/>`
+};
+// The drawing's title, in the same two-tone type as the live site's. `url` only where a real address exists.
+var ART = {
+  pkc: { url: PKC.host, brand: PKC.name.toUpperCase(), l1: "PROTECSOL", l2: "KARTING CUP", phone: "PKC" },
+  chess: { brand: "NK_CHESS", l1: "NK_", l2: "CHESS", phone: "NK" },
+  uni: { brand: "UNI", l1: "UNI", l2: "PAU", phone: "UNI" },
+  snap: { brand: "SNAPROULETTE", l1: "SNAP", l2: "ROULETTE", phone: "SNAP" }
+};
+var figureSVG = (p) => {
+  const a = ART[p.id];
+  return `
+<svg class="pd__art${p.live ? "" : " pd__art--dev"}" viewBox="0 0 946 816" preserveAspectRatio="xMidYMax slice" aria-hidden="true" focusable="false">
   <g transform="translate(16 0)">
   <rect class="pf-echo" x="76" y="104" width="570" height="760"/>
   <rect class="pf-win" x="60" y="120" width="580" height="740"/>
   <rect class="pf-chrome" x="60" y="120" width="580" height="34"/>
   <circle class="pf-chip" cx="80" cy="137" r="4"/><circle class="pf-chip" cx="95" cy="137" r="4"/><circle class="pf-chip" cx="110" cy="137" r="4"/>
   <rect class="pf-line" x="136" y="127" width="300" height="20" rx="10"/>
-  <text class="pf-t pf-muted" x="152" y="141" font-size="11">${esc(PKC.host)}</text>
+  ${a.url ? `<text class="pf-t pf-muted" x="152" y="141" font-size="11">${esc(a.url)}</text>` : ""}
 
   <rect class="pf-fill" x="84" y="176" width="14" height="14"/>
-  <text class="pf-d pf-white" x="106" y="188" font-size="13" letter-spacing="1">${esc(PKC.name.toUpperCase())}</text>
+  <text class="pf-d pf-white" x="106" y="188" font-size="13" letter-spacing="1">${esc(a.brand)}</text>
   ${bars([[470, 180, 34, 6], [518, 180, 34, 6], [566, 180, 34, 6]])}
 
-  <text class="pf-d pf-white" x="84" y="262" font-size="54">PROTECSOL</text>
-  <text class="pf-d pf-accent" x="84" y="318" font-size="54">KARTING CUP</text>
-  <g transform="translate(404 214) scale(2.5)"><path class="pf-circuit" d="${TRACK_MINI_D}"/></g>
+  <text class="pf-d pf-white" x="84" y="262" font-size="54">${esc(a.l1)}</text>
+  <text class="pf-d pf-accent" x="84" y="318" font-size="54">${esc(a.l2)}</text>
+  ${MOTIFS[p.id]()}
   ${bars([[84, 342, 250, 7], [84, 358, 190, 7]])}
   <path class="pf-line pf-line--hot" d="M84.5 380.5H214.5V404L207 411.5H84.5Z"/>
 
-  <text class="pf-t pf-muted" x="84" y="436" font-size="11" letter-spacing="1.6">CALENDAR</text>
-  <text class="pf-t pf-muted" x="352" y="436" font-size="11" letter-spacing="1.6">RANKINGS</text>
-  ${calendarRows()}
-  ${rankingRows()}
+  ${LOWER[p.id]()}
   </g>
 
   <g class="pf-phone">
   <rect class="pf-win" x="20" y="392" width="150" height="440" rx="24"/>
   <rect class="pf-chrome-line" x="20" y="392" width="150" height="440" rx="24"/>
   <rect class="pf-chip" x="75" y="404" width="40" height="6" rx="3"/>
-  <text class="pf-d pf-accent" x="36" y="442" font-size="13" letter-spacing="1">PKC</text>
+  <text class="pf-d pf-accent" x="36" y="442" font-size="13" letter-spacing="1">${esc(a.phone)}</text>
   ${bars([[36, 452, 70, 4]])}
   ${phoneCards()}
   </g>
 </svg>`;
+};
 
 // src/blocks/paddock/index.js
-var FORMAT = PKC.format.split(" ")[0].toLowerCase();
-var strings6 = {
-  en: {
-    "paddock.head1": "inside the",
-    "paddock.head2": "project",
-    "paddock.report": "Protecsol Karting Cup is the amateur karting championship of Empuriabrava. Calendar, registration and live rankings live in one site that Enric built end to end \u2014 database, PHP backend, React frontend and SEO.",
-    "paddock.cta": "visit live site",
-    "paddock.credit": "Shown with the permission of Protecsol.",
-    "paddock.fig.alt": "Illustration of the Protecsol Karting Cup website layout",
-    "paddock.fig.altShot": "Screenshot of the Protecsol Karting Cup website",
-    "paddock.meet.season": `${PKC.season} season`,
-    "paddock.stat.gp": "grands prix",
-    "paddock.stat.class": "classifications",
-    "paddock.stat.cc": "engine cc",
-    "paddock.stat.format": "format",
-    "paddock.strip.label": "How the live site is made",
-    "paddock.s1.top": "back end",
-    "paddock.s1.name": "Database",
-    "paddock.s1.bottom": "data layer",
-    "paddock.s2.top": "back end",
-    "paddock.s2.name": "PHP",
-    "paddock.s2.bottom": "MVC",
-    "paddock.s3.top": "online",
-    "paddock.s3.name": "Live site",
-    "paddock.s3.bottom": `${PKC.season} season`,
-    "paddock.s4.top": "front end",
-    "paddock.s4.name": "Interface",
-    "paddock.s4.bottom": "React \xB7 TypeScript",
-    "paddock.s5.top": "visibility",
-    "paddock.s5.name": "SEO",
-    "paddock.s5.bottom": "search & sharing"
-  },
-  es: {
-    "paddock.head1": "dentro del",
-    "paddock.head2": "proyecto",
-    "paddock.report": "Protecsol Karting Cup es el campeonato amateur de karting de Empuriabrava. El calendario, las inscripciones y las clasificaciones en directo est\xE1n en una sola web que Enric ha desarrollado de principio a fin: base de datos, backend en PHP, frontend en React y SEO.",
-    "paddock.cta": "visitar la web",
-    "paddock.credit": "Se muestra con permiso de Protecsol.",
-    "paddock.fig.alt": "Ilustraci\xF3n del dise\xF1o de la web de Protecsol Karting Cup",
-    "paddock.fig.altShot": "Captura de la web de Protecsol Karting Cup",
-    "paddock.meet.season": `temporada ${PKC.season}`,
-    "paddock.stat.gp": "grandes premios",
-    "paddock.stat.class": "clasificaciones",
-    "paddock.stat.cc": "cc de motor",
-    "paddock.stat.format": "formato",
-    "paddock.strip.label": "C\xF3mo est\xE1 hecha la web",
-    "paddock.s1.top": "back end",
-    "paddock.s1.name": "Base de datos",
-    "paddock.s1.bottom": "capa de datos",
-    "paddock.s2.top": "back end",
-    "paddock.s2.name": "PHP",
-    "paddock.s2.bottom": "MVC",
-    "paddock.s3.top": "online",
-    "paddock.s3.name": "Web publicada",
-    "paddock.s3.bottom": `temporada ${PKC.season}`,
-    "paddock.s4.top": "front end",
-    "paddock.s4.name": "Interfaz",
-    "paddock.s4.bottom": "React \xB7 TypeScript",
-    "paddock.s5.top": "visibilidad",
-    "paddock.s5.name": "SEO",
-    "paddock.s5.bottom": "buscadores y redes"
-  },
-  ca: {
-    "paddock.head1": "dins del",
-    "paddock.head2": "projecte",
-    "paddock.report": "Protecsol Karting Cup \xE9s el campionat amateur de karting d'Empuriabrava. El calendari, les inscripcions i les classificacions en directe s\xF3n en un sol lloc web que l'Enric ha desenvolupat de dalt a baix: base de dades, backend en PHP, frontend en React i SEO.",
-    "paddock.cta": "visita el lloc web",
-    "paddock.credit": "Es mostra amb perm\xEDs de Protecsol.",
-    "paddock.fig.alt": "Il\xB7lustraci\xF3 del disseny del lloc web de Protecsol Karting Cup",
-    "paddock.fig.altShot": "Captura del lloc web de Protecsol Karting Cup",
-    "paddock.meet.season": `temporada ${PKC.season}`,
-    "paddock.stat.gp": "grans premis",
-    "paddock.stat.class": "classificacions",
-    "paddock.stat.cc": "cc de motor",
-    "paddock.stat.format": "format",
-    "paddock.strip.label": "Com est\xE0 fet el lloc web",
-    "paddock.s1.top": "back end",
-    "paddock.s1.name": "Base de dades",
-    "paddock.s1.bottom": "capa de dades",
-    "paddock.s2.top": "back end",
-    "paddock.s2.name": "PHP",
-    "paddock.s2.bottom": "MVC",
-    "paddock.s3.top": "en l\xEDnia",
-    "paddock.s3.name": "Lloc web publicat",
-    "paddock.s3.bottom": `temporada ${PKC.season}`,
-    "paddock.s4.top": "front end",
-    "paddock.s4.name": "Interf\xEDcie",
-    "paddock.s4.bottom": "React \xB7 TypeScript",
-    "paddock.s5.top": "visibilitat",
-    "paddock.s5.name": "SEO",
-    "paddock.s5.bottom": "cercadors i xarxes"
-  }
-};
 var ICONS = {
   flag: '<path d="M7 27V4M7 5h16l-3 5.5 3 5.5H7"/>',
   trophy: '<path d="M10 5h11v7a5.5 5.5 0 0 1-11 0V5ZM10 8H5v2a4 4 0 0 0 5 3.8M21 8h5v2a4 4 0 0 1-5 3.8M15.5 17.5V23M12 23h7M10.5 26.5h10"/>',
   gauge: '<path d="M4 22a11.5 11.5 0 1 1 23 0M15.5 22l5-8"/><circle cx="15.5" cy="22" r="1.6"/>',
-  bars: '<path d="M5 26V16h5v10M13 26V8h5v18M21 26V12h5v14M3 26.5h25"/>'
+  bars: '<path d="M5 26V16h5v10M13 26V8h5v18M21 26V12h5v14M3 26.5h25"/>',
+  book: '<path d="M4 6h8a3.5 3.5 0 0 1 3.5 3.5V26a3 3 0 0 0-3-3H4V6ZM27 6h-8a3.5 3.5 0 0 0-3.5 3.5V26a3 3 0 0 1 3-3H27V6Z"/>',
+  layers: '<path d="M15.5 4 4 10l11.5 6 11.5-6-11.5-6ZM4 15.5l11.5 6 11.5-6M4 21l11.5 6 11.5-6"/>',
+  branch: '<circle cx="9" cy="6.5" r="2.6"/><circle cx="9" cy="24.5" r="2.6"/><circle cx="22" cy="11.5" r="2.6"/><path d="M9 9.1v12.8M22 14.1c0 5.6-13 3.4-13 7.8"/>',
+  check: '<rect x="4" y="4" width="23" height="23" rx="2"/><path d="M9.5 16l4.5 4.5 8-9"/>',
+  cap: '<path d="M15.5 6 2 12.5l13.5 6.5L29 12.5 15.5 6ZM8 15.5v6c0 1.6 3.4 3.5 7.5 3.5s7.5-1.9 7.5-3.5v-6M29 12.5v8"/>',
+  tag: '<path d="M4 15.5V5h10.5l12 12-10 10-12.5-11.5Z"/><circle cx="10" cy="10" r="1.5"/>',
+  box: '<path d="M15.5 4 4.5 9.5v12L15.5 27l11-5.5v-12L15.5 4ZM4.5 9.5l11 5.5 11-5.5M15.5 15v12"/>',
+  db: '<ellipse cx="15.5" cy="8" rx="9" ry="3.5"/><path d="M6.5 8v15c0 2 4 3.5 9 3.5s9-1.5 9-3.5V8M6.5 15.5c0 2 4 3.5 9 3.5s9-1.5 9-3.5"/>',
+  node: '<path d="M15.5 3.5 26 9.5v12l-10.5 6L5 21.5v-12l10.5-6Z"/><path d="M15.5 12v7"/>',
+  bolt: '<path d="M17.5 3 7 17.5h7.5L13.5 28 24 13h-7.5L17.5 3Z"/>',
+  door: '<path d="M7 27V4h14v23M4 27h23"/><circle cx="17.5" cy="15.5" r="1"/>',
+  scale: '<path d="M15.5 4v22M8 26h15M6 9h19M6 9l-3.5 8a3.5 3.5 0 0 0 7 0L6 9ZM25 9l-3.5 8a3.5 3.5 0 0 0 7 0L25 9Z"/>'
 };
-var STATS = [
-  { icon: "flag", key: "paddock.stat.gp", fig: String(PKC.gp) },
-  { icon: "trophy", key: "paddock.stat.class", fig: String(PKC.classifications.length) },
-  { icon: "gauge", key: "paddock.stat.cc", fig: String(PKC.engineCc) },
-  { icon: "bars", key: "paddock.stat.format", fig: FORMAT }
-];
-var statsHTML = () => STATS.map((s, i) => `
+var statFig = (s) => s.n != null ? fmtNum(s.n) : String(val(s.text));
+// long words (PostgreSQL, Socket.IO) get a smaller figure so they stay inside the column
+var figSize = (str) => Math.max(20, Math.min(38, Math.round(38 * 6 / Math.max(6, str.length))));
+var statsHTML = (p) => p.stats.map((s, i) => `
   <li class="pd__stat" data-stat="${i}">${i ? '<span class="pd__rule" data-rule></span>' : ""}
     <div class="pd__stat-row" data-row>
       <svg class="pd__icon" viewBox="0 0 31 31" aria-hidden="true" focusable="false">${ICONS[s.icon]}</svg>
       <div class="pd__stat-text"><span class="pd__stat-label" data-i18n="${s.key}"></span><span class="pd__stat-fig" data-fig="${i}"></span></div>
     </div>
   </li>`).join("");
-var STOPS = [{ x: 397 }, { x: 561 }, { x: 725, live: true }, { x: 896 }, { x: 1055 }];
-var LINKS = [{ x: 416, w: 126 }, { x: 580, w: 128 }, { x: 743, w: 136 }, { x: 914, w: 124 }];
+var meetHTML = (p) => {
+  const name = `<p class="pd__meet-name">${esc(p.name)}</p>`;
+  if (p.id === "pkc") return `${name}<p>${esc(PKC.place)}</p><p data-i18n="proj.pkc.meet3"></p>`;
+  if (p.id === "chess") return `${name}<p data-i18n="proj.chess.meet2"></p><p>${fmtNum(6)} <span data-i18n="stat.prep"></span></p>`;
+  return `${name}<p data-i18n="proj.${p.id}.meet2"></p><p data-i18n="status.dev"></p>`;
+};
+var PKC_STOPS = [397, 561, 725, 896, 1055];
+var PKC_LINKS = [{ x: 416, w: 126 }, { x: 580, w: 128 }, { x: 743, w: 136 }, { x: 914, w: 124 }];
+var stopsOf = (p) => p.id === "pkc" ? PKC_STOPS : Array.from({ length: p.stops }, (_, k) => Math.round(726 + (k - (p.stops - 1) / 2) * 164.5));
+var linksOf = (p) => {
+  const xs = stopsOf(p);
+  return p.id === "pkc" ? PKC_LINKS : xs.slice(0, -1).map((x, i) => ({ x: x + 19, w: xs[i + 1] - x - 38 }));
+};
 var CARD_W = 136;
-var linksHTML = () => LINKS.map((l, i) => `<li class="pd__link" aria-hidden="true" data-link="${i}" style="--x:${l.x};--w:${l.w}"></li>`).join("");
-var cardsHTML = () => STOPS.map((s, i) => `
-  <li class="pd__card${s.live ? " pd__card--live" : ""}${i < 2 ? " pd__card--extra" : ""}" data-card="${i}" style="--x:${s.x};--w:${CARD_W}">
-    <span class="pd__round" data-i18n="paddock.s${i + 1}.top"></span>
-    <b class="pd__name" data-name data-i18n="paddock.s${i + 1}.name"></b>
-    <span class="pd__date" data-i18n="paddock.s${i + 1}.bottom"></span>
-  </li>`).join("");
-var markersHTML = () => STOPS.map((s, i) => `<li class="pd__mark${s.live ? " pd__mark--live" : ""}" aria-hidden="true" data-mark="${i}" style="--x:${s.x}">
-  <svg viewBox="0 0 11 11" focusable="false">${s.live ? '<circle class="pd__pulse" data-pulse cx="5.5" cy="5.5" r="5.5" opacity="0"/><circle class="pd__disc" cx="5.5" cy="5.5" r="5.5"/>' : '<circle class="pd__ring" cx="5.5" cy="5.5" r="5"/>'}</svg></li>`).join("");
+var linksHTML = (p) => linksOf(p).map((l, i) => `<li class="pd__link" aria-hidden="true" data-link="${i}" style="--x:${l.x};--w:${l.w}"></li>`).join("");
+var cardsHTML = (p) => stopsOf(p).map((x, i) => {
+  const live = p.live && i === 2;
+  const key = (part) => `proj.${p.id}.s${i + 1}.${part}`;
+  const line = (tag, cls, part, extra = "") => dict.en[key(part)] ? `<${tag} class="${cls}"${extra} data-i18n="${key(part)}"></${tag}>` : `<${tag} class="${cls}" aria-hidden="true">&nbsp;</${tag}>`;
+  return `
+  <li class="pd__card${live ? " pd__card--live" : ""}${i < stopsOf(p).length - 3 ? " pd__card--extra" : ""}" data-card="${i}" style="--x:${x};--w:${CARD_W}">
+    ${line("span", "pd__round", "top")}
+    ${line("b", "pd__name", "name", " data-name")}
+    ${line("span", "pd__date", "bottom")}
+  </li>`;
+}).join("");
+var markersHTML = (p) => stopsOf(p).map((x, i) => {
+  const live = p.live && i === 2;
+  return `<li class="pd__mark${live ? " pd__mark--live" : ""}" aria-hidden="true" data-mark="${i}" style="--x:${x}">
+  <svg viewBox="0 0 11 11" focusable="false">${live ? '<circle class="pd__pulse" data-pulse cx="5.5" cy="5.5" r="5.5" opacity="0"/><circle class="pd__disc" cx="5.5" cy="5.5" r="5.5"/>' : `<circle class="pd__ring${p.live ? "" : " pd__ring--dev"}" cx="5.5" cy="5.5" r="5"/>`}</svg></li>`;
+}).join("");
+var tabsHTML = () => PROJECTS.map((p, i) => `<button type="button" class="pd__tab" role="tab" id="pd-tab-${p.id}" data-tab="${i}" aria-selected="false" aria-controls="pd-panel" tabindex="-1"><span class="pd__tab-br" aria-hidden="true">[</span><span class="pd__tab-name">${esc(p.name)}</span><i class="pdot${p.live ? " pdot--live" : ""}" aria-hidden="true"></i><span class="sr-only" data-i18n="${p.live ? "hero.p1.live" : "hero.p1.dev"}"></span><span class="pd__tab-br" aria-hidden="true">]</span></button>`).join("");
+var paddockMarkup = () => `<section class="pd" data-paddock aria-labelledby="pd-title">
+  <div class="pd__band" aria-hidden="true"></div>
+  <div class="pd__fig-layer" data-fig-layer>
+    <figure class="pd__figure" data-figure role="img"></figure>
+  </div>
+  <div class="pd__melt" aria-hidden="true"></div>
+
+  <h2 class="pd__head" id="pd-title">
+    <span class="pd__line"><span class="pd__line-text" data-i18n="paddock.head1"></span></span>
+    <span class="pd__line"><span class="pd__line-text" data-i18n="paddock.head2"></span><span class="pd__stop" aria-hidden="true">.</span></span>
+  </h2>
+
+  <div class="pd__tabs" role="tablist" data-tabs data-i18n-attr="aria-label:paddock.tabs.label">${tabsHTML()}</div>
+
+  <div class="pd__intro" id="pd-panel" role="tabpanel" data-intro>
+    <p class="pd__report" data-report></p>
+    <div class="pd__action" data-action></div>
+  </div>
+
+  <div class="pd__frame pd__frame--meet bracket" data-frame="meet" aria-hidden="true">${bracketCorners()}</div>
+  <div class="pd__meet" data-meet></div>
+
+  <div class="pd__frame pd__frame--stats bracket" data-frame="stats" aria-hidden="true">${bracketCorners()}</div>
+  <ul class="pd__stats" data-stats></ul>
+
+  <ol class="pd__strip" data-strip></ol>
+</section>
+`;
 var cqw2 = (px) => `${(px / 1440 * 100).toFixed(4)}cqw`;
 var MARK_DASH = 11.45;
 function mount4(slot) {
-  slot.innerHTML = markup_default4.replace("__FIGURE__", figureSVG()).replace("__CTA__", ctaHTML({ href: PKC.url, labelKey: "paddock.cta", ext: true })).replaceAll("__BRACKETS__", bracketCorners()).replace("__LIVE_BRACKETS__", bracketCorners()).replace("__PKC_NAME__", esc(PKC.name)).replace("__PKC_PLACE__", esc(PKC.place)).replace("__STATS__", statsHTML()).replace("__LINKS__", linksHTML()).replace("__CARDS__", cardsHTML()).replace("__MARKERS__", markersHTML());
+  slot.innerHTML = paddockMarkup();
   const root = slot.querySelector("[data-paddock]");
   applyDom(root);
   const parts = [];
   const offs = [];
+  const dyn = [];
   const q = (s) => root.querySelector(s);
   const qa = (s) => [...root.querySelectorAll(s)];
+  const on = (target, type, fn, opts) => {
+    target.addEventListener(type, fn, opts);
+    offs.push(() => target.removeEventListener(type, fn, opts));
+  };
   const FWD = "forward";
   parts.push(mountContours(root, { colorVar: "--paddock-contour" }));
   parts.push(mountDissolve(root, { carry: "dark" }));
   qa(".pd__line-text").forEach((el, i) => parts.push(revealText(el, { by: "words", stagger: 130, config: CFG.REVEAL, delay: i * 130, mode: FWD })));
   parts.push(rise(q(".pd__stop"), { from: { opacity: 0, y: "0.3em" }, to: { opacity: 1, y: "0em" }, config: CFG.REVEAL, delay: 130 + 110, mode: FWD }));
-  parts.push(revealText(q("[data-report]"), { by: "words", stagger: 30, config: { tension: 150, friction: 24 }, gap: 0.22, delay: 2 * 130 + 90, mode: FWD }));
-  parts.push(rise(q("[data-action]"), { from: { opacity: 0, y: "0.75rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, delay: 2 * 130 + 260, mode: FWD }));
   const fade = { from: { opacity: 0 }, to: { opacity: 1 }, config: CFG.REVEAL, mode: FWD };
   parts.push(rise(q('[data-frame="meet"]'), { ...fade, delay: 320 }));
-  parts.push(rise(q("[data-meet]"), { from: { opacity: 0, y: "0.75rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, delay: 410, mode: FWD }));
   parts.push(rise(q('[data-frame="stats"]'), { ...fade, delay: 460 }));
-  qa("[data-stat]").forEach((li, i) => {
-    const base = 460 + i * 90;
-    const rule = li.querySelector("[data-rule]");
-    if (rule) parts.push(rise(rule, { from: { scaleX: 0 }, to: { scaleX: 1 }, config: CFG.REVEAL, delay: base, mode: FWD }));
-    parts.push(rise(li.querySelector("[data-row]"), { from: { opacity: 0, y: "0.75rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, delay: base + 40, mode: FWD }));
-    parts.push(revealText(li.querySelector("[data-fig]"), { by: "letters", stagger: 24, config: CFG.FIGURE, gap: 0.3, text: STATS[i].fig, delay: base + 120, mode: FWD }));
-  });
+  parts.push(rise(q("[data-tabs]"), { from: { opacity: 0, y: "0.5rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, delay: 2 * 130 + 40, mode: FWD }));
   const layer = q("[data-fig-layer]");
   if (!reduced()) {
     parts.push(scrollTrigger({ el: root, start: "top bottom", end: "bottom top", smoothing: false, onUpdate: (p) => {
@@ -2678,40 +2654,355 @@ function mount4(slot) {
     } }));
   }
   const figure2 = q("[data-figure]");
-  (PKC_SCREENS_SHIPPED ? tryImage(PKC_SCREENS.home) : Promise.resolve(null)).then((img) => {
-    if (!img || !root.isConnected) return;
-    figure2.innerHTML = '<div class="pd__shot"><div class="pd__shot-bar" aria-hidden="true"><i></i><i></i><i></i></div></div>';
-    img.alt = "";
-    figure2.querySelector(".pd__shot").append(img);
-    figure2.setAttribute("data-i18n-attr", "aria-label:paddock.fig.altShot");
-    figure2.setAttribute("aria-label", t("paddock.fig.altShot"));
-  });
   const strip = q("[data-strip]");
-  const ctrls = [];
-  qa("[data-link]").forEach((el, i) => ctrls.push(rise(el, { from: { scaleX: 0 }, to: { scaleX: 1 }, config: CFG.REVEAL, delay: 560 + i * 90, mode: "once", view: false })));
-  qa("[data-card]").forEach((el, i) => {
-    const base = 560 + i * 90;
-    ctrls.push(rise(el, { from: { opacity: 0, y: "0.5rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, delay: base, mode: "once", view: false }));
-    ctrls.push(rise(el.querySelector("[data-name]"), { from: { opacity: 0, y: "0.3em" }, to: { opacity: 1, y: "0em" }, config: CFG.NAME, delay: base + 110, mode: "once", view: false }));
+  const tabs = qa("[data-tab]");
+  let cur = -1, figCtrls = [], firstRender = true, stripShown = false;
+  // Everything that depends on the chosen project is (re)built here; the entrance animations are the same ones the section always had.
+  function render(i) {
+    const p = PROJECTS[i];
+    const first = firstRender;
+    firstRender = false;
+    cur = i;
+    dyn.splice(0).forEach((d) => d.destroy?.());
+    root.dataset.project = p.id;
+    root.classList.toggle("is-dev", !p.live);
+    tabs.forEach((b, k) => {
+      b.setAttribute("aria-selected", String(k === i));
+      b.tabIndex = k === i ? 0 : -1;
+      b.classList.toggle("is-active", k === i);
+    });
+    q("[data-intro]").setAttribute("aria-labelledby", `pd-tab-${p.id}`);
+    const lag = (ms) => first ? ms : Math.round(ms * 0.25);
+    // summary
+    const report = q("[data-report]");
+    report.removeAttribute("data-tr");
+    report.dataset.i18n = `proj.${p.id}.summary`;
+    report.textContent = t(`proj.${p.id}.summary`);
+    dyn.push(revealText(report, { by: "words", stagger: 30, config: { tension: 150, friction: 24 }, gap: 0.22, delay: lag(2 * 130 + 90), mode: FWD }));
+    // call to action: the live site, or an honest status for the ones still in development
+    const action = q("[data-action]");
+    action.innerHTML = p.live ? `${ctaHTML({ href: p.url, labelKey: "paddock.cta", ext: true })}<p class="pd__credit" data-i18n="paddock.credit"></p>` : `<p class="pd__status"><i class="pdot" aria-hidden="true"></i><span data-i18n="status.dev"></span></p><p class="pd__credit" data-i18n="access.private"></p>`;
+    applyDom(action);
+    dyn.push(rise(action, { from: { opacity: 0, y: "0.75rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, delay: lag(2 * 130 + 260), mode: FWD }));
+    // the small frame: name, place or kind, status
+    const meet = q("[data-meet]");
+    meet.innerHTML = meetHTML(p);
+    applyDom(meet);
+    dyn.push(rise(meet, { from: { opacity: 0, y: "0.75rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, delay: lag(410), mode: FWD }));
+    // the four figures
+    const stats = q("[data-stats]");
+    stats.innerHTML = statsHTML(p);
+    applyDom(stats);
+    figCtrls = [];
+    qa("[data-stat]").forEach((li, k) => {
+      const base = lag(460) + k * 90;
+      const rule = li.querySelector("[data-rule]");
+      if (rule) dyn.push(rise(rule, { from: { scaleX: 0 }, to: { scaleX: 1 }, config: CFG.REVEAL, delay: base, mode: FWD }));
+      dyn.push(rise(li.querySelector("[data-row]"), { from: { opacity: 0, y: "0.75rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, delay: base + 40, mode: FWD }));
+      const figEl = li.querySelector("[data-fig]");
+      const text = statFig(p.stats[k]);
+      figEl.style.setProperty("--fs", String(figSize(text)));
+      const c = revealText(figEl, { by: "letters", stagger: 24, config: CFG.FIGURE, gap: 0.3, text, delay: base + 120, mode: FWD });
+      figCtrls.push(c);
+      dyn.push(c);
+    });
+    // the drawing
+    figure2.innerHTML = figureSVG(p);
+    figure2.dataset.i18nAttr = `aria-label:proj.${p.id}.alt`;
+    figure2.setAttribute("aria-label", t(`proj.${p.id}.alt`));
+    if (!first) {
+      const art = figure2.firstElementChild;
+      const r = rise(art, { from: { opacity: 0, y: "1.5rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, mode: "once", view: false });
+      dyn.push(r);
+      r.enable(true);
+    }
+    if (p.id === "pkc" && PKC_SCREENS_SHIPPED) tryImage(PKC_SCREENS.home).then((img) => {
+      if (!img || !root.isConnected || cur !== i) return;
+      figure2.innerHTML = '<div class="pd__shot"><div class="pd__shot-bar" aria-hidden="true"><i></i><i></i><i></i></div></div>';
+      img.alt = "";
+      figure2.querySelector(".pd__shot").append(img);
+    });
+    // the strip in the band
+    strip.innerHTML = linksHTML(p) + cardsHTML(p) + markersHTML(p) + (p.live ? `<span class="pd__live-bracket" data-live-bracket aria-hidden="true">${bracketCorners()}</span>` : "");
+    strip.dataset.i18nAttr = `aria-label:proj.${p.id}.strip`;
+    strip.setAttribute("aria-label", t(`proj.${p.id}.strip`));
+    applyDom(strip);
+    const ctrls = [];
+    const n = stopsOf(p).length;
+    qa("[data-link]").forEach((el, k) => ctrls.push(rise(el, { from: { scaleX: 0 }, to: { scaleX: 1 }, config: CFG.REVEAL, delay: lag(560) + k * 90, mode: "once", view: false })));
+    qa("[data-card]").forEach((el, k) => {
+      const base = lag(560) + k * 90;
+      ctrls.push(rise(el, { from: { opacity: 0, y: "0.5rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, delay: base, mode: "once", view: false }));
+      ctrls.push(rise(el.querySelector("[data-name]"), { from: { opacity: 0, y: "0.3em" }, to: { opacity: 1, y: "0em" }, config: CFG.NAME, delay: base + 110, mode: "once", view: false }));
+    });
+    qa("[data-mark]").forEach((el, k) => ctrls.push(rise(el, { from: { opacity: 0 }, to: { opacity: 1 }, config: CFG.REVEAL, delay: lag(560) + k * 90 + 60, mode: "once", view: false })));
+    const bracket = q("[data-live-bracket]");
+    if (bracket) ctrls.push(rise(bracket, { from: { opacity: 0 }, to: { opacity: 1 }, config: CFG.REVEAL, delay: lag(560) + n * 90, mode: "once", view: false }));
+    dyn.push(...ctrls);
+    const showStrip = () => {
+      stripShown = true;
+      ctrls.forEach((c) => c.enable(true));
+    };
+    if (stripShown) showStrip();
+    else dyn.push(inView(strip, { rootMargin: "0% 0% -8% 0%", once: true, onChange: (visible) => {
+      if (visible) showStrip();
+    } }));
+    if (!reduced()) {
+      const links = qa("[data-link]");
+      const pulse = q("[data-pulse]");
+      dyn.push(loopInView(strip, (time) => {
+        const f = time % 5200 / 5200;
+        const turn = Math.floor(links.length / 2);
+        links.forEach((el, k) => {
+          el.style.backgroundPositionX = `calc(var(--u) * ${(k < turn ? 1 : -1) * f * MARK_DASH})`;
+        });
+        if (pulse) {
+          const v = easeOutQuad(time % 3200 / 3200);
+          pulse.setAttribute("r", String(5.5 + v * 5.5 * 3.4));
+          pulse.setAttribute("opacity", String(0.5 * (1 - v) * (1 - v)));
+        }
+      }, () => 16));
+    }
+  }
+  const select = (i) => {
+    if (i !== cur && i >= 0 && i < PROJECTS.length) render(i);
+  };
+  render(0);
+  on(q("[data-tabs]"), "click", (e) => {
+    const b = e.target.closest("[data-tab]");
+    if (b) select(Number(b.dataset.tab));
   });
-  qa("[data-mark]").forEach((el, i) => ctrls.push(rise(el, { from: { opacity: 0 }, to: { opacity: 1 }, config: CFG.REVEAL, delay: 560 + i * 90 + 60, mode: "once", view: false })));
-  ctrls.push(rise(q("[data-live-bracket]"), { from: { opacity: 0 }, to: { opacity: 1 }, config: CFG.REVEAL, delay: 560 + 5 * 90, mode: "once", view: false }));
-  parts.push(...ctrls);
-  parts.push(inView(strip, { rootMargin: "0% 0% -20% 0%", once: true, onChange: (on) => {
-    if (on) ctrls.forEach((c) => c.enable(true));
+  on(q("[data-tabs]"), "keydown", (e) => {
+    const N = PROJECTS.length;
+    let next = cur;
+    if (e.key === "ArrowRight" || e.key === "ArrowDown") next = (cur + 1) % N;
+    else if (e.key === "ArrowLeft" || e.key === "ArrowUp") next = (cur - 1 + N) % N;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = N - 1;
+    else return;
+    e.preventDefault();
+    select(next);
+    tabs[next].focus();
+  });
+  on(window, "portfolio:project", (e) => select(PROJECTS.findIndex((p) => p.id === e.detail)));
+  // numbers and a few words are formatted per language: refresh them without replaying the reveal
+  offs.push(onLang(() => {
+    const p = PROJECTS[cur];
+    figCtrls.forEach((c, k) => {
+      const text = statFig(p.stats[k]);
+      c.el.style.setProperty("--fs", String(figSize(text)));
+      c.setText(text);
+    });
+  }));
+  return {
+    el: root,
+    destroy() {
+      offs.forEach((off) => off());
+      dyn.splice(0).forEach((d) => d.destroy?.());
+      parts.forEach((p) => p.destroy?.());
+      slot.innerHTML = "";
+    }
+  };
+}
+
+
+// src/blocks/ai/index.js
+var ai_exports = {};
+__export(ai_exports, {
+  mount: () => mount6
+});
+
+// The six tools, in the order they are described. Names are products, so they are not translated; what each one is for lives in translations.js (ai.tN.*).
+var AI_TOOLS = [
+  { id: "omniroute", name: "OmniRoute", k: "t1" },
+  { id: "opencode", name: "OpenCode", k: "t2" },
+  { id: "hermes", name: "Hermes", k: "t3" },
+  { id: "claude-code", name: "Claude Code", k: "t4" },
+  { id: "gpt", name: "GPT", k: "t5" },
+  { id: "gemini", name: "Gemini", k: "t6" }
+];
+// How a change gets made. The AI writes the draft; everything that decides (the idea, the review, the tests, what ships) stays on my lane.
+var AI_STEPS = [
+  { k: "f1", who: "me" },
+  { k: "f2", who: "ai" },
+  { k: "f3", who: "me" },
+  { k: "f4", who: "me" },
+  { k: "f5", who: "me" }
+];
+// The wires are drawn on a 500×50 board stretched over the five columns and the three rows (my lane, the AI lane, the way back). Straight segments only, so stretching distorts nothing.
+var AI_WIRES = ["M50 10H100V30H150", "M150 30H200V10H250", "M250 10H350", "M350 10H450"];
+var AI_BACK = ["M350 10V45H150V30", "M250 10V45"];
+var aiRows = () => AI_TOOLS.map((tool, i) => `
+      <button type="button" class="ai__row" role="tab" id="ai-tab-${tool.id}" data-tool="${i}" aria-selected="false" aria-controls="ai-out" tabindex="-1">
+        <span class="ai__ptr" aria-hidden="true">&gt;</span><span class="ai__tool">${esc(tool.name)}</span><span class="ai__use" data-i18n="ai.${tool.k}.use"></span>
+      </button>`).join("");
+var aiSteps = () => AI_STEPS.map((s, i) => `
+        <li class="ai__step ai__step--${s.who}${i === AI_STEPS.length - 1 ? " ai__step--end" : ""}" data-step="${i}" style="--c:${i + 1};--r:${s.who === "me" ? 1 : 2}">
+          <span class="ai__who" data-i18n="ai.flow.${s.who}"></span>
+          <b class="ai__step-name" data-i18n="ai.${s.k}.name"></b>
+          <span class="ai__step-desc" data-i18n="ai.${s.k}.desc"></span>
+        </li>`).join("");
+var aiMarkup = () => `<section class="ai" data-ai aria-labelledby="ai-title">
+  <div class="ai__in">
+  <div class="ai__top">
+    <div class="ai__copy">
+      <p class="ai__label eyebrow eyebrow--accent" data-i18n="ai.label"></p>
+      <h2 class="ai__title" id="ai-title">
+        <span class="ai__line"><span class="ai__line-text" data-i18n="ai.head1"></span></span>
+        <span class="ai__line"><span class="ai__line-text" data-i18n="ai.head2"></span><span class="ai__stop" aria-hidden="true">.</span></span>
+      </h2>
+      <p class="ai__slop"><svg class="ai__no" viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6"/><path d="M3.8 12.2 12.2 3.8"/></svg><span data-i18n="ai.slop"></span></p>
+      <p class="ai__lead" data-i18n="ai.lead"></p>
+      <dl class="ai__split">
+        <div class="ai__split-row"><dt data-i18n="ai.helps.label"></dt><dd class="ai__helps" data-i18n="ai.helps"></dd></div>
+        <div class="ai__split-row ai__split-row--keep"><dt data-i18n="ai.keep.label"></dt><dd class="ai__keeps" data-i18n="ai.keep"></dd></div>
+      </dl>
+    </div>
+
+    <div class="ai__term bracket" data-term>
+      ${bracketCorners()}
+      <p class="ai__cmd"><span class="ai__ps1" aria-hidden="true">$</span><span class="ai__cmd-text" data-cmd></span><i class="ai__caret" data-caret aria-hidden="true"></i></p>
+      <div class="ai__head" aria-hidden="true"><span></span><span data-i18n="ai.term.tool"></span><span data-i18n="ai.term.use"></span></div>
+      <div class="ai__rows" role="tablist" aria-orientation="vertical" data-tools data-i18n-attr="aria-label:ai.term.pick">${aiRows()}
+      </div>
+      <div class="ai__out" id="ai-out" role="tabpanel" data-out>
+        <p class="ai__out-name"><span aria-hidden="true">&gt;</span><b data-out-name></b></p>
+        <p class="ai__out-desc" data-out-desc></p>
+      </div>
+    </div>
+  </div>
+
+  <figure class="ai__flow" data-flow aria-labelledby="ai-flow-label">
+    <figcaption class="ai__flow-label eyebrow" id="ai-flow-label" data-i18n="ai.flow.label"></figcaption>
+    <div class="ai__board">
+      <div class="ai__lane ai__lane--me" aria-hidden="true"><span data-i18n="ai.flow.me"></span></div>
+      <div class="ai__lane ai__lane--ai" aria-hidden="true"><span data-i18n="ai.flow.ai"></span></div>
+      <svg class="ai__wires" viewBox="0 0 500 50" preserveAspectRatio="none" aria-hidden="true" focusable="false">
+        ${AI_WIRES.map((d) => `<path class="ai__wire" data-wire d="${d}"/>`).join("")}
+        ${AI_BACK.map((d) => `<path class="ai__wire ai__wire--back" data-back d="${d}"/>`).join("")}
+      </svg>
+      <ol class="ai__steps">${aiSteps()}
+      </ol>
+      <p class="ai__back"><span class="ai__back-ico" aria-hidden="true">&lt;--</span><span data-i18n="ai.back"></span></p>
+    </div>
+  </figure>
+
+  </div>
+</section>
+`;
+function mount6(slot) {
+  slot.innerHTML = aiMarkup();
+  const root = slot.querySelector("[data-ai]");
+  applyDom(root);
+  const parts = [];
+  const offs = [];
+  const q = (s) => root.querySelector(s);
+  const qa = (s) => [...root.querySelectorAll(s)];
+  const on = (target, type, fn, opts) => {
+    target.addEventListener(type, fn, opts);
+    offs.push(() => target.removeEventListener(type, fn, opts));
+  };
+  const FWD = "forward";
+  parts.push(mountDissolve(root));
+
+  // the heading and the statement under it: the same entrance every other section uses
+  qa(".ai__line-text").forEach((el, i) => parts.push(revealText(el, { by: "words", stagger: 110, config: CFG.REVEAL, delay: 100 + i * 130, mode: FWD })));
+  parts.push(rise(q(".ai__stop"), { from: { opacity: 0, y: "0.3em" }, to: { opacity: 1, y: "0em" }, config: CFG.REVEAL, delay: 100 + 130 + 110, mode: FWD }));
+  const lift = { from: { opacity: 0, y: "0.75rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, mode: FWD };
+  parts.push(rise(q(".ai__label"), { ...lift, delay: 0 }));
+  parts.push(rise(q(".ai__slop"), { ...lift, delay: 420 }));
+  parts.push(rise(q(".ai__lead"), { ...lift, delay: 520 }));
+  parts.push(rise(q(".ai__split"), { ...lift, delay: 0 }));
+
+  // ── the terminal: pick a tool, read what it is for ──
+  const rows = qa("[data-tool]");
+  const out = q("[data-out]");
+  const outName = q("[data-out-name]");
+  const outDesc = q("[data-out-desc]");
+  const cmd = q("[data-cmd]");
+  let cur = -1, stopScramble = () => {};
+  function select(i, { animate = true } = {}) {
+    if (i === cur || i < 0 || i >= AI_TOOLS.length) return;
+    const tool = AI_TOOLS[i];
+    const first = cur < 0;
+    cur = i;
+    rows.forEach((b, k) => {
+      b.setAttribute("aria-selected", String(k === i));
+      b.tabIndex = k === i ? 0 : -1;
+    });
+    out.setAttribute("aria-labelledby", `ai-tab-${tool.id}`);
+    const key = `ai.${tool.k}.desc`;
+    outDesc.dataset.i18n = key;
+    outName.textContent = tool.name;
+    stopScramble();
+    stopScramble = () => {};
+    if (first || !animate) outDesc.textContent = t(key);
+    else stopScramble = scrambleText(outDesc, { text: t(key), duration: 440 });
+  }
+  select(0, { animate: false });
+  on(q("[data-tools]"), "click", (e) => {
+    const b = e.target.closest("[data-tool]");
+    if (b) select(Number(b.dataset.tool));
+  });
+  on(q("[data-tools]"), "keydown", (e) => {
+    const N = AI_TOOLS.length;
+    let next = cur;
+    if (e.key === "ArrowDown" || e.key === "ArrowRight") next = (cur + 1) % N;
+    else if (e.key === "ArrowUp" || e.key === "ArrowLeft") next = (cur - 1 + N) % N;
+    else if (e.key === "Home") next = 0;
+    else if (e.key === "End") next = N - 1;
+    else return;
+    e.preventDefault();
+    select(next);
+    rows[next].focus();
+  });
+  parts.push({ destroy: () => stopScramble() });
+  offs.push(blink(q("[data-caret]")));
+
+  // the terminal prints itself once: the command, then a row at a time, then the output of the selected tool
+  const printed = [
+    ...rows.map((el, i) => rise(el, { from: { opacity: 0, y: "0.4rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, delay: 300 + i * 70, mode: "once", view: false })),
+    rise(out, { from: { opacity: 0 }, to: { opacity: 1 }, config: CFG.REVEAL, delay: 300 + rows.length * 70 + 80, mode: "once", view: false }),
+    rise(q(".ai__head"), { from: { opacity: 0 }, to: { opacity: 1 }, config: CFG.REVEAL, delay: 240, mode: "once", view: false })
+  ];
+  parts.push(...printed);
+  const cmdText = t("ai.term.cmd");
+  let stopCmd = () => {};
+  cmd.textContent = reduced() ? cmdText : "";
+  parts.push({ destroy: () => stopCmd() });
+  parts.push(inView(q("[data-term]"), { rootMargin: "0% 0% -15% 0%", once: true, onChange: (visible) => {
+    if (!visible) return;
+    stopCmd = scrambleText(cmd, { text: cmdText, duration: 420 });
+    printed.forEach((c) => c.enable(true));
   } }));
+
+  // ── the flow: the steps appear in the order the work happens, then the way back lights up ──
+  const flow = q("[data-flow]");
+  const steps = qa("[data-step]");
+  const wires = qa("[data-wire]");
+  const backs = qa("[data-back]");
+  const fade = { from: { opacity: 0 }, to: { opacity: 1 }, config: CFG.REVEAL, mode: "once", view: false };
+  const seq = [];
+  steps.forEach((el, i) => {
+    seq.push(rise(el, { from: { opacity: 0, y: "0.5rem" }, to: { opacity: 1, y: "0rem" }, config: CFG.REVEAL, delay: i * 200, mode: "once", view: false }));
+    if (wires[i]) seq.push(rise(wires[i], { ...fade, delay: i * 200 + 100 }));
+  });
+  const tail = steps.length * 200 + 120;
+  backs.forEach((el, i) => seq.push(rise(el, { ...fade, delay: tail + i * 80 })));
+  seq.push(rise(q(".ai__back"), { ...fade, delay: tail + 160 }));
+  seq.push(rise(q(".ai__flow-label"), { ...lift, mode: "once", view: false, delay: 0 }));
+  parts.push(...seq);
+  parts.push(inView(flow, { rootMargin: "0% 0% -18% 0%", once: true, onChange: (visible) => {
+    if (visible) seq.forEach((c) => c.enable(true));
+  } }));
+  // the dashes on the way back run toward the draft, so the rejection is read as motion; nothing moves under reduced motion
   if (!reduced()) {
-    const links = qa("[data-link]");
-    const pulse = q("[data-pulse]");
-    parts.push(loopInView(strip, (time) => {
-      const f = time % 5200 / 5200;
-      links.forEach((el, i) => {
-        el.style.backgroundPositionX = `calc(var(--u) * ${(i < 2 ? 1 : -1) * f * MARK_DASH})`;
+    parts.push(loopInView(flow, (time) => {
+      const off = String(-(time * 0.022 % 9));
+      backs.forEach((el) => {
+        el.style.strokeDashoffset = off;
       });
-      const v = easeOutQuad(time % 3200 / 3200);
-      pulse.setAttribute("r", String(5.5 + v * 5.5 * 3.4));
-      pulse.setAttribute("opacity", String(0.5 * (1 - v) * (1 - v)));
-    }, () => 16));
+    }, () => 40));
   }
   return {
     el: root,
@@ -2723,55 +3014,17 @@ function mount4(slot) {
   };
 }
 
+
 // src/blocks/footer/index.js
 var footer_exports = {};
 __export(footer_exports, {
-  mount: () => mount5,
-  strings: () => strings7
+  mount: () => mount5
 });
 
 // src/blocks/footer/markup.html
 var markup_default5 = '<section class="ft" data-footer aria-label="Footer">\n  <div class="ft__panel" data-panel>\n    <div class="ft__fig-layer" data-fig-layer aria-hidden="false">\n      <div class="ft__fig" data-fig>\n        <img class="ft__plate" src="__FIGURE__" alt="" data-fig-img data-i18n-attr="alt:footer.fig.alt" width="1536" height="1024" decoding="async">\n      </div>\n    </div>\n  </div>\n\n  <svg class="ft__logo" data-logo viewBox="0 0 106 24" role="img" data-i18n-attr="aria-label:footer.logo.alt" focusable="false">\n    <text x="0" y="19.5" textLength="106" lengthAdjust="spacingAndGlyphs">ENRIC MASELLA</text>\n  </svg>\n\n  <h2 class="ft__head" data-head>\n    <span class="ft__line"><span class="ft__line-text" data-i18n="footer.head1"></span></span>\n    <span class="ft__line"><span class="ft__line-text" data-i18n="footer.head2"></span><span class="ft__stop" aria-hidden="true">.</span></span>\n  </h2>\n\n  <nav class="ft__nav" data-nav data-i18n-attr="aria-label:footer.nav.label">__NAV__</nav>\n\n  <div class="ft__copy" data-copy>\n    <p class="ft__rights" data-i18n="footer.copy"></p>\n    <p class="ft__credit" data-i18n="footer.credit"></p>\n  </div>\n  <div class="ft__cta" data-cta>__CTA__</div>\n  <div class="ft__social" data-social>\n    <a class="ft__social-link" href="https://github.com/enricmasella" target="_blank" rel="noopener noreferrer" data-i18n="footer.social.github"></a>\n    <a class="ft__social-link" href="https://www.instagram.com/enric.masella/" target="_blank" rel="noopener noreferrer" data-i18n="footer.social.inst"></a>\n  </div>\n</section>\n';
 
 // src/blocks/footer/index.js
-var strings7 = {
-  en: {
-    "footer.logo.alt": "Enric Masella",
-    "footer.head1": "keep",
-    "footer.head2": "building",
-    "footer.nav.label": "Page sections",
-    "footer.fig.alt": "Stylised 3D portrait of Enric Masella",
-    "footer.copy": `\xA9 ${SITE.year} Enric Masella. All rights reserved.`,
-    "footer.credit": "Made in Girona.",
-    "footer.cta": "say hello",
-    "footer.social.github": "github",
-    "footer.social.inst": "inst"
-  },
-  es: {
-    "footer.logo.alt": "Enric Masella",
-    "footer.head1": "sigue",
-    "footer.head2": "construyendo",
-    "footer.nav.label": "Secciones de la p\xE1gina",
-    "footer.fig.alt": "Retrato 3D estilizado de Enric Masella",
-    "footer.copy": `\xA9 ${SITE.year} Enric Masella. Todos los derechos reservados.`,
-    "footer.credit": "Hecho en Girona.",
-    "footer.cta": "escr\xEDbeme",
-    "footer.social.github": "github",
-    "footer.social.inst": "inst"
-  },
-  ca: {
-    "footer.logo.alt": "Enric Masella",
-    "footer.head1": "segueix",
-    "footer.head2": "construint",
-    "footer.nav.label": "Seccions de la p\xE0gina",
-    "footer.fig.alt": "Retrat 3D estilitzat d'Enric Masella",
-    "footer.copy": `\xA9 ${SITE.year} Enric Masella. Tots els drets reservats.`,
-    "footer.credit": "Fet a Girona.",
-    "footer.cta": "escriu-me",
-    "footer.social.github": "github",
-    "footer.social.inst": "inst"
-  }
-};
 var navHTML = () => NAV.map((n) => `<a class="ft__link" href="#${n.id}"><span class="ft__link-text" data-i18n="${n.key}"></span><svg class="ft__link-arrow" viewBox="0 0 13.7071 10.7071" aria-hidden="true" focusable="false"><path d="M0 5.35355H13M8 10.3536L13 5.35355L8 0.353553" fill="none"/></svg></a>`).join("");
 function mount5(slot) {
   slot.innerHTML = markup_default5.replace("__FIGURE__", footer_figure_default).replace("__NAV__", navHTML()).replace("__CTA__", ctaHTML({ href: `mailto:${SITE.email}`, labelKey: "footer.cta" })).replace("https://github.com/enricmasella", esc(SITE.github)).replace("https://www.instagram.com/enric.masella/", esc(SITE.instagramUrl));
@@ -2807,15 +3060,11 @@ function mount5(slot) {
 }
 
 // src/blocks/_manifest.js
-var blocks = { season: season_exports, timeline: timeline_exports, paddock: paddock_exports, footer: footer_exports };
+var blocks = { season: season_exports, timeline: timeline_exports, paddock: paddock_exports, ai: ai_exports, footer: footer_exports };
 
 // src/main.js
 history.scrollRestoration = "manual";
 window.scrollTo(0, 0);
-registerStrings(strings);
-registerStrings(strings2);
-registerStrings(strings3);
-for (const block of Object.values(blocks)) if (block) registerStrings(block.strings);
 initI18n();
 var rootEl = document.documentElement;
 var fitRoot = () => {
@@ -2878,6 +3127,33 @@ document.addEventListener("click", (e) => {
   if (!target) return;
   e.preventDefault();
   scrollToTarget(target);
+  // the address follows the section, so it can be copied and opened later; replaceState adds nothing to the history and does not scroll
+  try {
+    history.replaceState(null, "", location.pathname + location.search + (id === "top" ? "" : `#${id}`));
+  } catch {
+  }
 });
+// opening the page on a section (/#ai, /#skills ...) lands there; a hash the page does not know is ignored
+var openHash = () => {
+  let id = "";
+  try {
+    id = decodeURIComponent(location.hash.slice(1));
+  } catch {
+  }
+  const target = id && id !== "top" ? document.getElementById(id) : null;
+  if (target) scrollToTarget(target, { immediate: true });
+};
+openHash();
+window.addEventListener("hashchange", openHash);
+// the browser also tries to bring the fragment into view once the sections exist; apply ours again after load so the result is the same everywhere, unless the visitor has already started scrolling
+var touched = false;
+for (const type of ["wheel", "touchstart", "keydown", "pointerdown"]) window.addEventListener(type, () => {
+  touched = true;
+}, { once: true, passive: true });
+window.addEventListener("load", () => {
+  if (!touched) setTimeout(() => {
+    if (!touched) openHash();
+  }, 80);
+}, { once: true });
 window.__portfolio = { mounted };
 
