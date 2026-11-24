@@ -1,20 +1,22 @@
 // js/translations.js
-// Sistema de idiomas e internacionalización (Català, Español, English).
+// Sistema de idiomas e internacionalización (Català, Español, English). Script clásico (sin módulos, sin build):
+// expone window.NK_I18N y funciona igual abriendo index.html desde disco o desde un servidor.
 //
-// ÚNICA FUENTE DE TEXTOS: todo el copy visible vive en este archivo (main.js ya no lleva copias
-// en línea). Para cambiar un texto, cámbialo aquí, en los tres idiomas.
+// ÚNICA FUENTE DE TEXTOS: todo el copy visible vive en este archivo. Para cambiar un texto, cámbialo aquí,
+// en los tres idiomas. Los elementos del HTML llevan data-i18n="clave" (texto) o data-i18n-attr="atributo:clave".
 // Idioma al abrir: inglés. Solo se cambia con ?lang=xx o con el selector (la elección se recuerda
 // durante la sesión, no entre visitas).
+(() => {
 
-export const LANGS = ["ca", "es", "en"];
-export const LANG_NAMES = { ca: "Català", es: "Español", en: "English" };
-export const DEFAULT_LANG = "en";
+const LANGS = ["ca", "es", "en"];
+const LANG_NAMES = { ca: "Català", es: "Español", en: "English" };
+const DEFAULT_LANG = "en";
 
-export const dict = { en: {}, es: {}, ca: {} };
+const dict = { en: {}, es: {}, ca: {} };
 const listeners = new Set();
-export let lang = DEFAULT_LANG;
+let lang = DEFAULT_LANG;
 
-export function registerStrings(data) {
+function registerStrings(data) {
   const strings = typeof data === "function" ? data() : data;
   if (!strings) return;
   for (const l of LANGS) {
@@ -22,15 +24,15 @@ export function registerStrings(data) {
   }
 }
 
-export function t(key, vars) {
+function t(key, vars) {
   const s = dict[lang][key] ?? dict.en[key] ?? key;
   return vars ? s.replace(/\{(\w+)\}/g, (_, k) => vars[k] ?? "") : s;
 }
 
-export const getLang = () => lang;
+const getLang = () => lang;
 
 // Números con separador de millares según el idioma (1,203 · 1.203).
-export function fmtNum(n) {
+function fmtNum(n) {
   const tag = lang === "es" ? "es-ES" : lang === "ca" ? "ca-ES" : "en-GB";
   try {
     return new Intl.NumberFormat(tag, { useGrouping: "always" }).format(n);
@@ -41,7 +43,7 @@ export function fmtNum(n) {
 
 const SESSION_KEY = "em-lang-session";
 
-export function detect() {
+function detect() {
   // 1) ?lang=xx  2) la elección hecha en esta sesión  3) inglés. El idioma del navegador NO se usa.
   try {
     const q = new URLSearchParams(location.search).get("lang");
@@ -54,7 +56,7 @@ export function detect() {
   return DEFAULT_LANG;
 }
 
-export function applyDom(root = (typeof document !== "undefined" ? document : null)) {
+function applyDom(root = (typeof document !== "undefined" ? document : null)) {
   if (!root) return;
   root.querySelectorAll("[data-i18n]").forEach((el) => {
     if (el.hasAttribute("data-tr")) return;
@@ -69,7 +71,7 @@ export function applyDom(root = (typeof document !== "undefined" ? document : nu
   });
 }
 
-export function applyMeta() {
+function applyMeta() {
   if (typeof document === "undefined") return;
   document.documentElement.lang = lang;
   const set = (sel, val) => {
@@ -85,7 +87,7 @@ export function applyMeta() {
   set('meta[property="og:locale"]', { ca: "ca_ES", es: "es_ES", en: "en_GB" }[lang]);
 }
 
-export function setLang(next, { persist = true } = {}) {
+function setLang(next, { persist = true } = {}) {
   if (!LANGS.includes(next)) return;
   lang = next;
   if (persist && typeof sessionStorage !== "undefined") {
@@ -98,19 +100,19 @@ export function setLang(next, { persist = true } = {}) {
   listeners.forEach((cb) => cb(next));
 }
 
-export function onLang(cb) {
+function onLang(cb) {
   listeners.add(cb);
   return () => listeners.delete(cb);
 }
 
-export function initI18n() {
+function initI18n() {
   lang = detect();
   applyMeta();
   applyDom();
 }
 
 // Orden del dock y del pie. `ai` es la sección nueva (AI Tools & Development Workflow).
-export const NAV = [
+const NAV = [
   { key: "nav.work", id: "work" },
   { key: "nav.about", id: "path" },
   { key: "nav.skills", id: "skills" },
@@ -123,7 +125,7 @@ export const NAV = [
 // Diccionarios de textos por sección
 // ─────────────────────────────────────────────────────────────────────────────
 
-export const strings = {
+const strings = {
   en: {
     "meta.title": "Enric Masella — Aspiring Full-Stack Developer",
     "meta.description": "Aspiring full-stack developer in Girona. AI-augmented, human-driven, anti-AI slop. Projects: Protecsol Karting Cup (live), NK_Chess, uni and SnapRoulette.",
@@ -184,7 +186,7 @@ export const strings = {
 };
 
 
-export const stringsHero = {
+const stringsHero = {
   en: {
     "hero.logoLabel": "Enric Masella — back to top",
     "hero.rowRole": "Aspiring Full-Stack Developer",
@@ -242,14 +244,14 @@ export const stringsHero = {
 };
 
 
-export const stringsDock = {
+const stringsDock = {
   en: { "nav.index": "index" },
   es: { "nav.index": "inicio" },
   ca: { "nav.index": "inici" }
 };
 
 
-export const stringsSeason = {
+const stringsSeason = {
   en: {
     "season.head1": "selected work",
     "season.head2": "so far",
@@ -288,7 +290,7 @@ export const stringsSeason = {
 
 // Los cuatro proyectos. Misma estructura para todos: área, tipo, resumen, datos y franja.
 // Solo se escribe lo que está confirmado; lo que está en desarrollo lo dice su estado.
-export const stringsProjects = {
+const stringsProjects = {
   en: {
     "stat.gp": "grands prix",
     "stat.class": "classifications",
@@ -496,7 +498,7 @@ export const stringsProjects = {
 };
 
 
-export const stringsTimeline = {
+const stringsTimeline = {
   en: {
     "timeline.head1": "from learning",
     "timeline.head2": "to building",
@@ -617,7 +619,7 @@ export const stringsTimeline = {
 };
 
 
-export const stringsPaddock = {
+const stringsPaddock = {
   en: {
     "paddock.head1": "inside the",
     "paddock.head2": "projects",
@@ -643,7 +645,7 @@ export const stringsPaddock = {
 
 
 // AI Tools & Development Workflow
-export const stringsAI = {
+const stringsAI = {
   en: {
     "ai.label": "AI tools & development workflow",
     "ai.head1": "AI-augmented,",
@@ -770,7 +772,7 @@ export const stringsAI = {
 };
 
 
-export const stringsFooter = {
+const stringsFooter = {
   en: {
     "footer.logo.alt": "Enric Masella",
     "footer.head1": "keep",
@@ -781,7 +783,7 @@ export const stringsFooter = {
     "footer.credit": "Made in Girona.",
     "footer.cta": "say hello",
     "footer.social.github": "github",
-    "footer.social.inst": "inst"
+    "footer.social.inst": "instagram"
   },
   es: {
     "footer.logo.alt": "Enric Masella",
@@ -793,7 +795,7 @@ export const stringsFooter = {
     "footer.credit": "Hecho en Girona.",
     "footer.cta": "escríbeme",
     "footer.social.github": "github",
-    "footer.social.inst": "inst"
+    "footer.social.inst": "instagram"
   },
   ca: {
     "footer.logo.alt": "Enric Masella",
@@ -805,10 +807,121 @@ export const stringsFooter = {
     "footer.credit": "Fet a Girona.",
     "footer.cta": "escriu-me",
     "footer.social.github": "github",
-    "footer.social.inst": "inst"
+    "footer.social.inst": "instagram"
   }
 };
 
+
+// ─────────────────────────────────────────────────────────────────
+// Vuelo (ronda 5): rótulos del retrato, anillo de proyectos, constelación, avisos
+// ─────────────────────────────────────────────────────────────────
+const stringsWorld = {
+  en: {
+    "hint.scroll": "scroll to fly",
+    "hint.swipe": "swipe up to fly",
+    "world.portfolio": "portfolio / 2026",
+    "frame.lens": "x-ray lens",
+    "frame.idle": "idle",
+    "frame.active": "active",
+    "frame.place": "girona, cat",
+    "about.internship": "an internship",
+    "about.langs.more": "IT upper-intermediate · FR intermediate",
+    "ring.title": "click a zone",
+    "ring.titleTap": "tap a zone",
+    "ring.hint": "each segment of the ring is one project. pick one to see what it is and how it is made.",
+    "ring.core": "{n} projects",
+    "ring.close": "close",
+    "ring.aria": "Project details",
+    "ring.open": "open {name}",
+    "art.pkc": "live standings",
+    "art.chess": "lines & exercises",
+    "art.uni": "access marks",
+    "art.snap": "private room",
+    "proj.pkc.blurb": "The amateur karting championship of Empuriabrava. Calendar, registration and live rankings in one site that Enric built end to end.",
+    "proj.chess.blurb": "A chess learning platform. Courses are built from studies and lines; exercises come from those lines and their traps, audited with Stockfish 19.",
+    "proj.uni.blurb": "Free tools for students taking the PAU, the Spanish university entrance exams: grades, weightings and access marks without the spreadsheet.",
+    "proj.snap.blurb": "Players join private rooms and try to guess who sent a photo or video before it disappears. Real time.",
+    "common.copy": "copy",
+    "common.copied": "copied",
+    "common.copyFail": "select + ctrl c",
+    "skills.note.near": "bright, near: worked with.",
+    "skills.note.far": "dim, far: exploring.",
+    "skills.hoverHint": "hover a group to light it up",
+    "skills.title": "constellation",
+    "proj.how": "how it is made",
+    "skills.tapHint": "tap a group to light it up"
+  },
+  es: {
+    "hint.scroll": "desplázate para volar",
+    "hint.swipe": "desliza hacia arriba para volar",
+    "world.portfolio": "portfolio / 2026",
+    "frame.lens": "lente de rayos x",
+    "frame.idle": "en reposo",
+    "frame.active": "activa",
+    "frame.place": "girona, cat",
+    "about.internship": "unas prácticas",
+    "about.langs.more": "IT intermedio alto · FR intermedio",
+    "ring.title": "haz clic en una zona",
+    "ring.titleTap": "toca una zona",
+    "ring.hint": "cada segmento del anillo es un proyecto. elige uno para ver qué es y cómo está hecho.",
+    "ring.core": "{n} proyectos",
+    "ring.close": "cerrar",
+    "ring.aria": "Detalles del proyecto",
+    "ring.open": "abrir {name}",
+    "art.pkc": "clasificación en directo",
+    "art.chess": "líneas y ejercicios",
+    "art.uni": "notas de acceso",
+    "art.snap": "sala privada",
+    "proj.pkc.blurb": "El campeonato amateur de karting de Empuriabrava. Calendario, inscripciones y clasificaciones en directo en una sola web que Enric ha desarrollado de principio a fin.",
+    "proj.chess.blurb": "Una plataforma para aprender ajedrez. Los cursos se construyen con estudios y líneas; los ejercicios salen de esas líneas y sus trampas, auditados con Stockfish 19.",
+    "proj.uni.blurb": "Herramientas gratuitas para estudiantes de la PAU: notas, ponderaciones y notas de acceso sin hojas de cálculo.",
+    "proj.snap.blurb": "Los jugadores entran en salas privadas e intentan adivinar quién ha enviado una foto o un vídeo antes de que desaparezca. En tiempo real.",
+    "common.copy": "copiar",
+    "common.copied": "copiado",
+    "common.copyFail": "selecciona + ctrl c",
+    "skills.note.near": "brillante y cerca: trabajado con.",
+    "skills.note.far": "tenue y lejos: explorando.",
+    "skills.hoverHint": "pasa el cursor por un grupo para iluminarlo",
+    "skills.title": "constelación",
+    "proj.how": "cómo está hecho",
+    "skills.tapHint": "toca un grupo para iluminarlo"
+  },
+  ca: {
+    "hint.scroll": "desplaça per volar",
+    "hint.swipe": "llisca cap amunt per volar",
+    "world.portfolio": "portfolio / 2026",
+    "frame.lens": "lent de raigs x",
+    "frame.idle": "en repòs",
+    "frame.active": "activa",
+    "frame.place": "girona, cat",
+    "about.internship": "unes pràctiques",
+    "about.langs.more": "IT intermedi alt · FR intermedi",
+    "ring.title": "fes clic en una zona",
+    "ring.titleTap": "toca una zona",
+    "ring.hint": "cada segment de l'anell és un projecte. tria'n un per veure què és i com està fet.",
+    "ring.core": "{n} projectes",
+    "ring.close": "tancar",
+    "ring.aria": "Detalls del projecte",
+    "ring.open": "obrir {name}",
+    "art.pkc": "classificació en directe",
+    "art.chess": "línies i exercicis",
+    "art.uni": "notes d'accés",
+    "art.snap": "sala privada",
+    "proj.pkc.blurb": "El campionat amateur de karting d'Empuriabrava. Calendari, inscripcions i classificacions en directe en un sol lloc web que l'Enric ha desenvolupat de dalt a baix.",
+    "proj.chess.blurb": "Una plataforma per aprendre escacs. Els cursos es construeixen amb estudis i línies; els exercicis surten d'aquestes línies i les seves trampes, auditats amb Stockfish 19.",
+    "proj.uni.blurb": "Eines gratuïtes per a estudiants de la PAU: notes, ponderacions i notes d'accés sense fulls de càlcul.",
+    "proj.snap.blurb": "Els jugadors entren a sales privades i intenten endevinar qui ha enviat una foto o un vídeo abans que desaparegui. En temps real.",
+    "common.copy": "copia",
+    "common.copied": "copiat",
+    "common.copyFail": "selecciona + ctrl c",
+    "skills.note.near": "brillant i a prop: treballat amb.",
+    "skills.note.far": "tènue i lluny: explorant.",
+    "skills.hoverHint": "passa el cursor per un grup per il·luminar-lo",
+    "skills.title": "constel·lació",
+    "proj.how": "com està fet",
+    "skills.tapHint": "toca un grup per il·luminar-lo"
+  }
+};
 
 // Registro automático de todos los textos (main.js no registra nada más).
 registerStrings(strings);
@@ -820,3 +933,9 @@ registerStrings(stringsTimeline);
 registerStrings(stringsPaddock);
 registerStrings(stringsAI);
 registerStrings(stringsFooter);
+registerStrings(stringsWorld);
+
+initI18n();
+
+window.NK_I18N = { LANGS, LANG_NAMES, DEFAULT_LANG, dict, t, getLang, fmtNum, detect, applyDom, applyMeta, setLang, onLang, initI18n, registerStrings, NAV };
+})();
