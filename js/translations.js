@@ -203,7 +203,8 @@ const stringsHero = {
     "hero.lv.en": "English: C1",
     "hero.mail": "open to internships",
     "hero.cta": "view projects",
-    "hero.photoAlt": "Photo of Enric Masella in silver sunglasses. Moving the cursor over it reveals an X-ray of the same photo."
+    "hero.photoAlt": "Portrait of Enric Masella.",
+    "hero.monoAlt": "Portrait frame with the initials NK drawn in characters."
   },
   es: {
     "hero.logoLabel": "Enric Masella — volver arriba",
@@ -221,7 +222,8 @@ const stringsHero = {
     "hero.lv.en": "Inglés: C1",
     "hero.mail": "abierto a prácticas",
     "hero.cta": "ver proyectos",
-    "hero.photoAlt": "Foto de Enric Masella con gafas de sol plateadas. Al mover el cursor sobre ella aparece una radiografía de la misma foto."
+    "hero.photoAlt": "Retrato de Enric Masella.",
+    "hero.monoAlt": "Marco de retrato con las iniciales NK dibujadas con caracteres."
   },
   ca: {
     "hero.logoLabel": "Enric Masella — torna a dalt",
@@ -239,7 +241,8 @@ const stringsHero = {
     "hero.lv.en": "Anglès: C1",
     "hero.mail": "obert a pràctiques",
     "hero.cta": "veure projectes",
-    "hero.photoAlt": "Foto d'Enric Masella amb ulleres de sol platejades. En moure el cursor per sobre apareix una radiografia de la mateixa foto."
+    "hero.photoAlt": "Retrat d'Enric Masella.",
+    "hero.monoAlt": "Marc de retrat amb les inicials NK dibuixades amb caràcters."
   }
 };
 
@@ -820,12 +823,19 @@ const stringsWorld = {
     "hint.scroll": "scroll to fly",
     "hint.swipe": "swipe up to fly",
     "world.portfolio": "portfolio / 2026",
-    "frame.lens": "x-ray lens",
-    "frame.idle": "idle",
-    "frame.active": "active",
     "frame.place": "girona, cat",
     "about.internship": "an internship",
     "about.langs.more": "IT upper-intermediate · FR intermediate",
+    "about.me.head1": "a bit more",
+    "about.me.head2": "about me",
+    "about.me.label": "who",
+    "about.me.lead": "I'm Enric, NK online: an aspiring full-stack developer from Girona. I'm still learning and I say so: one project live, three in development, no invented experience.",
+    "about.me.f1.label": "background",
+    "about.me.f1": "Science. I break problems down analytically and look for the logical, efficient fix.",
+    "about.me.f2.label": "discipline",
+    "about.me.f2": "Martial arts and music gave me focus and routine.",
+    "about.me.f3.label": "off the keyboard",
+    "about.me.f3": "F1, karting, games and retro terminals, which is why this site looks like one.",
     "ring.title": "click a zone",
     "ring.titleTap": "tap a zone",
     "ring.hint": "each segment of the ring is one project. pick one to see what it is and how it is made.",
@@ -846,21 +856,29 @@ const stringsWorld = {
     "common.copyFail": "select + ctrl c",
     "skills.note.near": "bright, near: worked with.",
     "skills.note.far": "dim, far: exploring.",
-    "skills.hoverHint": "hover a group to light it up",
+    "skills.hoverHint": "hover to light up · click to focus · drag to rotate",
     "skills.title": "constellation",
     "proj.how": "how it is made",
-    "skills.tapHint": "tap a group to light it up"
+    "skills.tapHint": "tap a point or a group to focus it",
+    "skills.usedIn": "used in"
   },
   es: {
     "hint.scroll": "desplázate para volar",
     "hint.swipe": "desliza hacia arriba para volar",
     "world.portfolio": "portfolio / 2026",
-    "frame.lens": "lente de rayos x",
-    "frame.idle": "en reposo",
-    "frame.active": "activa",
     "frame.place": "girona, cat",
     "about.internship": "unas prácticas",
     "about.langs.more": "IT intermedio alto · FR intermedio",
+    "about.me.head1": "un poco más",
+    "about.me.head2": "sobre mí",
+    "about.me.label": "quién",
+    "about.me.lead": "Soy Enric, NK en internet: aspirante a desarrollador full-stack de Girona. Sigo aprendiendo y lo digo: un proyecto publicado, tres en desarrollo y ninguna experiencia inventada.",
+    "about.me.f1.label": "base",
+    "about.me.f1": "Ciencias. Descompongo los problemas de forma analítica y busco la solución lógica y eficiente.",
+    "about.me.f2.label": "disciplina",
+    "about.me.f2": "Las artes marciales y la música me han dado foco y constancia.",
+    "about.me.f3.label": "fuera del teclado",
+    "about.me.f3": "F1, karting, videojuegos y terminales retro; por eso esta web parece una.",
     "ring.title": "haz clic en una zona",
     "ring.titleTap": "toca una zona",
     "ring.hint": "cada segmento del anillo es un proyecto. elige uno para ver qué es y cómo está hecho.",
@@ -881,21 +899,29 @@ const stringsWorld = {
     "common.copyFail": "selecciona + ctrl c",
     "skills.note.near": "brillante y cerca: trabajado con.",
     "skills.note.far": "tenue y lejos: explorando.",
-    "skills.hoverHint": "pasa el cursor por un grupo para iluminarlo",
+    "skills.hoverHint": "pasa el cursor para iluminar · clic para enfocar · arrastra para girar",
     "skills.title": "constelación",
     "proj.how": "cómo está hecho",
-    "skills.tapHint": "toca un grupo para iluminarlo"
+    "skills.tapHint": "toca un punto o un grupo para enfocarlo",
+    "skills.usedIn": "usado en"
   },
   ca: {
     "hint.scroll": "desplaça per volar",
     "hint.swipe": "llisca cap amunt per volar",
     "world.portfolio": "portfolio / 2026",
-    "frame.lens": "lent de raigs x",
-    "frame.idle": "en repòs",
-    "frame.active": "activa",
     "frame.place": "girona, cat",
     "about.internship": "unes pràctiques",
     "about.langs.more": "IT intermedi alt · FR intermedi",
+    "about.me.head1": "una mica més",
+    "about.me.head2": "sobre mi",
+    "about.me.label": "qui",
+    "about.me.lead": "Sóc l'Enric, NK a internet: aspirant a desenvolupador full-stack de Girona. Continuo aprenent i ho dic: un projecte publicat, tres en desenvolupament i cap experiència inventada.",
+    "about.me.f1.label": "base",
+    "about.me.f1": "Ciències. Descomponc els problemes de manera analítica i busco la solució lògica i eficient.",
+    "about.me.f2.label": "disciplina",
+    "about.me.f2": "Les arts marcials i la música m'han donat focus i constància.",
+    "about.me.f3.label": "fora del teclat",
+    "about.me.f3": "F1, karting, videojocs i terminals retro; per això aquesta web sembla una.",
     "ring.title": "fes clic en una zona",
     "ring.titleTap": "toca una zona",
     "ring.hint": "cada segment de l'anell és un projecte. tria'n un per veure què és i com està fet.",
@@ -916,10 +942,11 @@ const stringsWorld = {
     "common.copyFail": "selecciona + ctrl c",
     "skills.note.near": "brillant i a prop: treballat amb.",
     "skills.note.far": "tènue i lluny: explorant.",
-    "skills.hoverHint": "passa el cursor per un grup per il·luminar-lo",
+    "skills.hoverHint": "passa el cursor per il·luminar · clic per enfocar · arrossega per girar",
     "skills.title": "constel·lació",
     "proj.how": "com està fet",
-    "skills.tapHint": "toca un grup per il·luminar-lo"
+    "skills.tapHint": "toca un punt o un grup per enfocar-lo",
+    "skills.usedIn": "usat a"
   }
 };
 
