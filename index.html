@@ -27,7 +27,6 @@
 <link rel="preload" href="assets/fonts/SpaceMono-400.woff2" as="font" type="font/woff2" crossorigin>
 <link rel="stylesheet" href="style.css">
 <script defer src="js/translations.js"></script>
-<script defer src="js/portrait-grid.js"></script>
 <script defer src="js/core.js"></script>
 <script defer src="js/world.js"></script>
 <script defer src="js/flight.js"></script>
@@ -58,12 +57,12 @@
   <a class="logo" href="#top" data-i18n-attr="aria-label:hero.logoLabel">NK<i class="dot live"></i></a>
   <div class="hud-r">
     <div class="lang" data-lang-switch role="group" data-i18n-attr="aria-label:a11y.language"></div>
-    <a class="hud-gh" href="https://github.com/enricmasella" rel="noopener" data-i18n="nav.github">GitHub</a>
+    <a class="hud-gh" href="https://github.com/enricmasella" rel="noopener" data-scr data-i18n="nav.github">GitHub</a>
   </div>
 </header>
 
 <nav class="dock" id="dock" data-i18n-attr="aria-label:a11y.primaryNav">
-  <div class="dock__l"><span class="tag"><i class="dot live"></i><b>enric masella</b></span><span data-clock>gmt+1 00:00:00</span></div>
+  <div class="dock__l"><span data-clock>gmt+1 00:00:00</span></div>
   <div class="dock__c" data-links></div>
   <div class="dock__r"><span data-sc>scroll 000%</span><span data-xy>x 0000 y 0000</span></div>
 </nav>
