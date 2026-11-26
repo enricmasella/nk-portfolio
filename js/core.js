@@ -24,6 +24,8 @@ root.classList.toggle("flat", FLAT); root.classList.toggle("touch", touch);
 
 /* ───────── the content that is not text: names, links, numbers (every sentence lives in translations.js) ───────── */
 NK.DATA = {
+  /* portrait: path of the photo for the hero frame, e.g. "assets/portrait.webp" (empty: the frame shows the NK monogram) */
+  portrait: "",
   name: "Enric Masella", email: "nkdevelopmentss@gmail.com", github: "https://github.com/enricmasella", instagram: "https://www.instagram.com/enric.masella/",
   projects: [
     { id: "pkc", name: "Protecsol Karting Cup", live: true, art: "track", stack: ["PHP", "React", "TypeScript", "SEO"], strip: 5,
@@ -117,21 +119,13 @@ NK.onFrame((t, dt) => {
   mouse.nx = (mouse.sx / NK.VW) * 2 - 1; mouse.ny = (mouse.sy / NK.VH) * 2 - 1;
 });
 
-/* ───────── assets: the photo layers, the ASCII grid of the photo, and the fonts (the ASCII type is measured with them) ───────── */
+/* ───────── assets: the optional portrait photo, and the fonts (the ASCII type is measured with them) ───────── */
 NK.img = {};
-NK.PLATE = { w: 1520, h: 1136, visible: 1060, bust: 1327, face: 1026, glasses: { x: 556, y: 318, w: 388, h: 140 }, head: { x: 760, y: 470 } };
 NK.ready = (async () => {
   const load = (src) => new Promise((res) => { const i = new Image(); i.onload = () => res(i); i.onerror = () => res(null); i.src = src; });
-  const [photo, xray, glasses] = await Promise.all([load("assets/hero-photo.webp"), load("assets/hero-xray.webp"), load("assets/hero-glasses.webp")]);
-  NK.img = { photo, xray, glasses };
+  if (NK.DATA.portrait) NK.img.portrait = await load(NK.DATA.portrait);
   try { await Promise.all([document.fonts.load('700 100px Oswald'), document.fonts.load('500 40px Oswald'), document.fonts.load('400 13px "Space Mono"'), document.fonts.load('700 13px "Space Mono"')]); } catch (e) {}
   if (document.fonts && document.fonts.ready) { try { await Promise.race([document.fonts.ready, new Promise((r) => setTimeout(r, 1500))]); } catch (e) {} }
-  const g = window.NK_GRID;
-  if (g) {
-    const bin = atob(g.b64), n = g.cols * g.rows, L = new Uint8Array(n), A = new Uint8Array(n);
-    for (let i = 0; i < n; i++) { L[i] = bin.charCodeAt(i); A[i] = bin.charCodeAt(n + i); }
-    NK.grid = { cols: g.cols, rows: g.rows, L, A };
-  }
   return NK;
 })();
 const boots = []; NK.boot = (fn) => boots.push(fn); NK.boots = boots;
@@ -195,16 +189,36 @@ NK.Field = class {
 
 /* ───────── text: scrubbed decode, driven by depth or by position ───────── */
 const NOISE = "/\\|_-+*#<>[]{}=:;.%&$@0123456789";
-NK.scrub = (text, p, tick = 0, lead = 4) => {
+NK.scrub = (text, p, tick = 0, lead = 4, pad = " ") => {
   const n = text.length, front = p * (n + lead); let out = "";
   for (let i = 0; i < n; i++) {
     const ch = text[i];
     if (ch === " " || ch === "\n") out += ch;
     else if (i < front - lead) out += ch;
-    else if (i < front) out += NOISE[Math.floor(hash(i * 131 + tick * 17 + 3) * NOISE.length)];
-    else out += " ";
+    else if (i < front || pad === null) out += NOISE[Math.floor(hash(i * 131 + tick * 17 + 3) * NOISE.length)];
+    else out += pad;
   }
   return out;
+};
+/* a word that scrambles and settles (the dock on hover, on click, when its section arrives): noise runs left to right until the real text is left.
+   The text is read live (data-i18n), so a language change in mid-run still ends on the right word; a screen reader gets the real word all along. */
+NK.scramble = (el, { duration = 480, delay = 0, hidden = false } = {}) => {
+  const text = () => (el.dataset.i18n ? I.t(el.dataset.i18n) : el.dataset.txt || el.textContent);
+  const id = (el.__sc = (el.__sc || 0) + 1);
+  if (reduced) { el.textContent = text(); return; }
+  el.setAttribute("aria-label", text());
+  const t0 = performance.now() + delay; let last = -1;
+  const end = () => { el.textContent = text(); el.removeAttribute("aria-label"); };
+  const step = (now) => {
+    if (el.__sc !== id) return;
+    const k = (now - t0) / duration, tx = text();
+    if (k >= 1) { end(); return; }
+    const tick = Math.floor(now / 55);
+    if (k < 0) { if (hidden && last !== -2) { last = -2; el.textContent = "\u00a0".repeat(tx.length); } }
+    else if (tick !== last) { last = tick; el.textContent = NK.scrub(tx, k, tick, 5, hidden ? "\u00a0" : null); }
+    requestAnimationFrame(step);
+  };
+  requestAnimationFrame(step);
 };
 NK.decode = (() => {
   const items = []; const norm = (s) => s.replace(/\s+/g, " ").trim();
@@ -326,9 +340,8 @@ NK.art = (canvas, kind, { cols = 46, rows = 17 } = {}) => {
 };
 
 /* markup of the framed portrait (the canvas is driven by NK.Portrait) */
-NK.frameHTML = () => '<figure class="frame bk" data-frame role="img" data-i18n-attr="aria-label:hero.photoAlt"><canvas aria-hidden="true"></canvas><span class="ruler ruler--t"></span><span class="ruler ruler--l"></span>' +
-  '<span class="ft ft--tl" aria-hidden="true"><i class="dot live"></i>enric masella</span>' +
-  '<span class="ft ft--tr" data-pst aria-hidden="true"><span data-i18n="frame.lens">x-ray lens</span> <b class="st st--i" data-i18n="frame.idle">idle</b><b class="st st--a" data-i18n="frame.active">active</b></span>' +
+NK.frameHTML = () => '<figure class="frame bk" data-frame role="img" data-i18n-attr="aria-label:' + (NK.img.portrait ? "hero.photoAlt" : "hero.monoAlt") + '"><canvas aria-hidden="true"></canvas><span class="ruler ruler--t"></span><span class="ruler ruler--l"></span>' +
+  '<span class="ft ft--tl" aria-hidden="true"><i class="dot live"></i>nk</span>' +
   '<span class="ft ft--bl" data-pxy aria-hidden="true">x 000 y 000</span><span class="ft ft--br" aria-hidden="true" data-i18n="frame.place">girona, cat</span><i class="reticle" data-rt aria-hidden="true"></i></figure>';
 
 /* ───────── the dock (bottom bar): sections, clock, readouts; the section in view is also the #hash of the address ───────── */
@@ -339,7 +352,11 @@ NK.dock = () => {
   a.innerHTML = links.map((l, i) => '<button type="button" data-i="' + i + '" data-i18n="' + l.key + '"></button>').join("");
   I.applyDom(a);
   const btn = $$("button", a), ypos = (s) => (typeof s.y === "function" ? s.y() : s.y);
-  a.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; NK.goto(ypos(links[+b.dataset.i])); });
+  /* the letters scramble when the mouse comes in, when a button is pressed and when its section arrives; the first time they type themselves in */
+  const hov = (b) => b.addEventListener("pointerenter", (e) => { if (e.pointerType === "mouse") NK.scramble(b, { duration: 360 }); });
+  btn.forEach((b, i) => { hov(b); NK.scramble(b, { duration: 520, delay: 700 + i * 70, hidden: true }); });
+  $$("[data-scr]").forEach(hov);
+  a.addEventListener("click", (e) => { const b = e.target.closest("button"); if (!b) return; NK.scramble(b, { duration: 480 }); NK.goto(ypos(links[+b.dataset.i])); });
   const pad = (n, l) => String(Math.round(n)).padStart(l, "0");
   let lastSec = -1, cur = -1, hashAt = 0, hashNow = "";
   NK.onFrame(() => {
@@ -349,7 +366,7 @@ NK.dock = () => {
     if (sec !== lastSec) { lastSec = sec; const off = -d.getTimezoneOffset() / 60; clock.textContent = "gmt" + (off >= 0 ? "+" : "") + off + " " + pad(d.getHours(), 2) + ":" + pad(d.getMinutes(), 2) + ":" + pad(sec, 2); }
     /* the section in view: the last one whose start is already behind the middle of the screen */
     let now = 0, nowAll = 0; links.forEach((l, i) => { if (S.y >= ypos(l) - S.vh * 0.45) now = i; }); NK.sections.forEach((s, i) => { if (S.y >= ypos(s) - S.vh * 0.45) nowAll = i; });
-    if (now !== cur) { cur = now; btn.forEach((b, i) => { b.classList.toggle("on", i === now); if (i === now) b.setAttribute("aria-current", "true"); else b.removeAttribute("aria-current"); }); }
+    if (now !== cur) { const first = cur < 0; cur = now; btn.forEach((b, i) => { b.classList.toggle("on", i === now); if (i === now) { b.setAttribute("aria-current", "true"); if (!first) NK.scramble(b, { duration: 480 }); } else b.removeAttribute("aria-current"); }); }
     const h = NK.sections[nowAll].hash, tn = performance.now();
     if (h !== hashNow && tn - hashAt > 500 && NK.hashReady) { hashAt = tn; hashNow = h; try { history.replaceState(null, "", "#" + h); } catch (e) {} }
   });
@@ -361,29 +378,26 @@ NK.openHash = () => {
   NK.goto(typeof s.y === "function" ? s.y() : s.y, true);
 };
 
-/* ───────── the portrait in its frame: photo, X-ray lens under the cursor, sunglasses on top, photo → ASCII ───────── */
+/* ───────── the portrait frame: the monogram NK drawn in characters; with a photo (NK.DATA.portrait) the photo takes the frame and turns into characters as the camera leaves it ───────── */
 NK.Portrait = class {
   constructor(el, opt = {}) {
-    this.el = el; this.cv = $("canvas", el); this.cx = this.cv.getContext("2d");
-    this.o = Object.assign({ fit: 0.97, cols: 76, auto: true }, opt);
-    this.ascii = 0; this.intro = reduced ? 1 : 0; this.t0 = null; this.trail = []; this.hover = false; this.pos = { x: 0, y: 0 }; this.sweep = { t0: 0, on: false, next: 4 };
-    this.rt = $("[data-rt]", el); this.xyEl = $("[data-pxy]", el); this.stEl = $("[data-pst]", el);
-    this.layer = document.createElement("canvas"); this.lx = this.layer.getContext("2d"); this.mask = document.createElement("canvas"); this.mx = this.mask.getContext("2d");
-    this.panel = document.createElement("canvas"); this.size();
+    this.el = el; this.cv = $("canvas", el); this.cx = this.cv.getContext("2d"); this.o = Object.assign({ introMs: 2200 }, opt);
+    this.img = NK.img.portrait || null; this.ascii = 0; this.intro = reduced ? 1 : 0; this.t0 = null; this.hover = false; this.pos = { x: 0, y: 0 };
+    this.rt = $("[data-rt]", el); this.xyEl = $("[data-pxy]", el);
+    this.panel = document.createElement("canvas"); this.layer = document.createElement("canvas"); this.lx = this.layer.getContext("2d"); this.size();
     if (window.ResizeObserver) new ResizeObserver(() => this.size()).observe(el);
-    NK.onQuality(() => this.size());
+    NK.onQuality(() => this.size()); NK.onMode(() => this.size());
     el.addEventListener("pointerenter", () => { this.hover = true; }); el.addEventListener("pointerleave", () => { this.hover = false; });
     el.addEventListener("pointermove", (e) => this.point(e), { passive: true });
-    NK.onFrame((t, dt) => this.frame(t, dt));
+    NK.onFrame((t) => this.frame(t));
   }
   point(e) { const r = this.cv.getBoundingClientRect(), sx = this.w / Math.max(r.width, 1), sy = this.h / Math.max(r.height, 1); this.pos.x = (e.clientX - r.left) * sx; this.pos.y = (e.clientY - r.top) * sy; }
   size() {
     const w = this.el.clientWidth, h = this.el.clientHeight; if (!w || !h) return; const d = (this.dpr = Q.dpr);
-    this.w = w; this.h = h; for (const c of [this.cv, this.layer, this.mask, this.panel]) { c.width = Math.round(w * d); c.height = Math.round(h * d); }
-    this.cv.style.width = w + "px"; this.cv.style.height = h + "px"; this.makePanel();
-    // the bust is bottom-aligned in the frame, rows 60..1136 of the plate fill the height (zoom < 1 leaves air above the head)
-    const P = NK.PLATE, zoom = this.o.zoom || 0.92; this.s = (h / 1076) * zoom;
-    this.px = w / 2 - 760 * this.s + (this.o.dx || 0) * this.s; this.py = h - 1136 * this.s + (this.o.dy || 0) * this.s; this.R = 0.27 * P.face * this.s;
+    this.w = w; this.h = h; for (const c of [this.cv, this.layer, this.panel]) { c.width = Math.round(w * d); c.height = Math.round(h * d); }
+    this.cv.style.width = w + "px"; this.cv.style.height = h + "px";
+    this.cols = NK.tall ? 46 : 66; this.cw = w / this.cols; this.chh = this.cw * 2; this.rows = Math.ceil(h / this.chh); this.heat = new Float32Array(this.cols * this.rows);
+    this.makePanel(); this.makeMap();
   }
   makePanel() {
     const d = this.dpr, x = this.panel.getContext("2d"), w = this.w, h = this.h; x.setTransform(d, 0, 0, d, 0, 0); x.clearRect(0, 0, w, h);
@@ -394,77 +408,86 @@ NK.Portrait = class {
     x.fillStyle = "rgba(255,255,255,.09)"; for (let yy = 8; yy < h; yy += 16) for (let xx = 8; xx < w; xx += 16) x.fillRect(xx, yy, 1, 1);
     x.fillStyle = "rgba(0,0,0,.18)"; for (let yy = 0; yy < h; yy += 3) x.fillRect(0, yy, w, 1);
   }
-  visible() { const r = this.el.getBoundingClientRect(); return r.bottom > -40 && r.top < NK.VH + 40 && r.right > -40 && r.left < NK.VW + 40; }
-  frame(t, dt) {
-    if (!NK.started || !this.w || !NK.img.photo) return; if (!this.visible()) return;
-    if (this.t0 === null) this.t0 = performance.now(); const now = performance.now();
-    if (this.intro < 1) this.intro = Math.min(1, (now - this.t0) / (this.o.introMs || 2600));
-    const { cx, w, h, s, px, py } = this, d = this.dpr, P = NK.PLATE, nx = mouse.nx, ny = mouse.ny;
-    const par = { x: nx * 5, y: ny * 3.5 }, rise = (1 - smooth(0, 0.5, this.intro)) * 26 * s * 3;
-    const ox = px + par.x, oy = py + par.y + rise;
-    // lens position: the pointer when it is over the frame, the idle sweep otherwise
-    let lens = null;
-    if (this.hover) { lens = { x: this.pos.x, y: this.pos.y, k: 1 }; this.sweep.on = false; this.sweep.next = t + 5; }
-    else if (this.o.auto && this.intro >= 1 && !reduced) {
-      if (!this.sweep.on && t > this.sweep.next) { this.sweep.on = true; this.sweep.t0 = t; }
-      if (this.sweep.on) { const k = (t - this.sweep.t0) / 2.4; if (k >= 1) { this.sweep.on = false; this.sweep.next = t + 7; } else { const e = k * k * (3 - 2 * k); lens = { x: lerp(w * 0.22, w * 0.8, e), y: h * (0.44 + 0.07 * Math.sin(e * 6.2)), k: Math.sin(Math.PI * k) }; } }
+  /* one number per character cell: the brightness of the photo, or the density of the monogram (blocks of "@" with a soft halo and a few stray dots) */
+  makeMap() {
+    const { cols, rows, w, h } = this, m = (this.map = new Float32Array(cols * rows));
+    if (this.img) {
+      const im = this.img, c = document.createElement("canvas"); c.width = cols; c.height = rows; const x = c.getContext("2d", { willReadFrequently: true });
+      const s = Math.max(w / im.width, h / im.height), dw = im.width * s, dh = im.height * s, kx = cols / w, ky = rows / h;
+      x.fillStyle = "#000"; x.fillRect(0, 0, cols, rows); x.drawImage(im, ((w - dw) / 2) * kx, (h - dh) * ky, dw * kx, dh * ky);
+      const px = x.getImageData(0, 0, cols, rows).data; for (let i = 0; i < m.length; i++) m[i] = (0.2126 * px[i * 4] + 0.7152 * px[i * 4 + 1] + 0.0722 * px[i * 4 + 2]) / 255;
+      return;
     }
-    if (lens) { this.trail.push({ x: lens.x, y: lens.y, t, k: lens.k }); }
-    while (this.trail.length && t - this.trail[0].t > 0.6) this.trail.shift();
-    // base: panel, photo
+    /* the monogram is set in the same face as the big ASCII words (Oswald), measured into cells like they are */
+    const SX = 4, SY = 8, k = SX / this.cw, off = document.createElement("canvas"); off.width = cols * SX; off.height = rows * SY;
+    const ox = off.getContext("2d", { willReadFrequently: true }), FT = (px) => "700 " + px + 'px Oswald, "Arial Narrow", Impact, sans-serif';
+    ox.font = FT(100); const cap100 = ox.measureText("H").actualBoundingBoxAscent || 78, wN = ox.measureText("N").width, wK = ox.measureText("K").width, tr = 5;
+    const fs = ((0.64 * w) / (wN + wK + tr)) * 100, cap = (cap100 * fs) / 100, x0 = (w - ((wN + wK + tr) * fs) / 100) / 2, y0 = h * 0.5 + cap / 2;
+    ox.fillStyle = "#fff"; ox.textBaseline = "alphabetic"; ox.font = FT(fs * k); ox.fillText("N", x0 * k, y0 * k); ox.fillText("K", (x0 + ((wN + tr) * fs) / 100) * k, y0 * k);
+    const px = ox.getImageData(0, 0, off.width, off.height).data, cov = new Float32Array(cols * rows);
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      let sum = 0; for (let yy = 0; yy < SY; yy++) { let o = ((r * SY + yy) * off.width + c * SX) * 4 + 3; for (let xx = 0; xx < SX; xx++, o += 4) sum += px[o]; }
+      cov[r * cols + c] = clamp((sum / (255 * SX * SY) - 0.1) / 0.75);
+    }
+    for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+      const i = r * cols + c, q = cov[i]; if (q > 0.02) { m[i] = 0.28 + 0.72 * q * (0.92 + 0.08 * hash(c, r, 5)); continue; }
+      let v = 0; for (let dr = -2; dr <= 2; dr++) for (let dc = -3; dc <= 3; dc++) { const cc = c + dc, rr = r + dr; if (cc < 0 || cc >= cols || rr < 0 || rr >= rows || cov[rr * cols + cc] < 0.3) continue; const e = 1 - Math.hypot(dc / 2, dr) / 1.9; if (e > v) v = e; }
+      m[i] = v > 0 ? v * 0.42 * (0.6 + 0.4 * hash(c, r, 6)) : hash(c, r, 9) > 0.9 ? 0.1 + 0.08 * hash(c, r, 10) : 0;
+    }
+  }
+  visible() { const r = this.el.getBoundingClientRect(); return r.bottom > -40 && r.top < NK.VH + 40 && r.right > -40 && r.left < NK.VW + 40; }
+  frame(t) {
+    if (!NK.started || !this.w || !this.visible()) return;
+    const now = performance.now(); if (this.t0 === null) this.t0 = now;
+    if (this.intro < 1) this.intro = Math.min(1, (now - this.t0) / this.o.introMs);
+    const { cx, w, h, cols, rows, cw, chh, heat } = this, d = this.dpr;
     cx.setTransform(d, 0, 0, d, 0, 0); cx.clearRect(0, 0, w, h); cx.drawImage(this.panel, 0, 0, w, h);
-    const lx = this.lx; lx.setTransform(d, 0, 0, d, 0, 0); lx.clearRect(0, 0, w, h);
-    const scan = this.intro < 1 ? smooth(0.06, 0.92, this.intro) : 1, scanY = py + lerp(40 * s, P.h * s + 250 * s, scan) + rise, depth = 250 * s;
-    if (this.intro < 1) {
-      lx.save(); lx.beginPath(); lx.rect(0, 0, w, Math.max(0, scanY - depth)); lx.clip(); lx.drawImage(NK.img.photo, ox, oy, P.w * s, P.h * s); lx.restore();
-      lx.save(); lx.beginPath(); lx.rect(0, Math.max(0, scanY - depth), w, Math.min(depth, scanY)); lx.clip(); lx.drawImage(NK.img.xray, ox, oy, P.w * s, P.h * s); lx.restore();
-    } else lx.drawImage(NK.img.photo, ox, oy, P.w * s, P.h * s);
-    // ASCII: cells flip from photo to glyph
-    const A = this.ascii; let cells = null;
-    if (A > 0.001 && NK.grid) cells = this.asciiCells(lx, A, ox, oy);
-    // lens
-    if (this.trail.length && this.intro >= 1) {
-      const m = this.mx; m.setTransform(d, 0, 0, d, 0, 0); m.clearRect(0, 0, w, h); m.fillStyle = "#fff";
-      if ("filter" in m) m.filter = "blur(" + (3 + this.R * 0.05).toFixed(1) + "px)";
-      for (const q of this.trail) { const age = (t - q.t) / 0.6, rr = this.R * (1 - age) ** 0.8 * (0.75 + 0.25 * q.k); if (rr < 1) continue; m.beginPath(); for (let i = 0; i <= 40; i++) { const a = (i / 40) * Math.PI * 2, rad = rr * (1 + 0.07 * Math.sin(a * 3 + t * 2.2 + q.x * 0.02) + 0.04 * Math.sin(a * 5 - t * 3)), X = q.x + Math.cos(a) * rad, Y = q.y + Math.sin(a) * rad; i ? m.lineTo(X, Y) : m.moveTo(X, Y); } m.fill(); }
-      if ("filter" in m) m.filter = "none";
-      // x-ray into a temp layer, masked
-      if (!this.tmp) { this.tmp = document.createElement("canvas"); } const tc = this.tmp; if (tc.width !== this.cv.width) { tc.width = this.cv.width; tc.height = this.cv.height; }
-      const tx = tc.getContext("2d"); tx.setTransform(d, 0, 0, d, 0, 0); tx.globalCompositeOperation = "source-over"; tx.clearRect(0, 0, w, h);
-      tx.drawImage(NK.img.xray, ox, oy, P.w * s, P.h * s);
-      tx.globalCompositeOperation = "destination-in"; tx.setTransform(1, 0, 0, 1, 0, 0); tx.drawImage(this.mask, 0, 0); tx.globalCompositeOperation = "source-over"; tx.setTransform(d, 0, 0, d, 0, 0);
-      cx.drawImage(lx.canvas, 0, 0, w, h); cx.drawImage(tc, 0, 0, w, h);
-      // the red rim of the brush: a ring on the newest point
-      const q = this.trail[this.trail.length - 1]; cx.save(); cx.strokeStyle = "rgba(255,26,26," + (0.55 * q.k).toFixed(2) + ")"; cx.lineWidth = 1.2; cx.shadowColor = "rgba(255,26,26,.9)"; cx.shadowBlur = 10; cx.beginPath(); cx.arc(q.x, q.y, this.R * (0.75 + 0.25 * q.k), 0, Math.PI * 2); cx.stroke(); cx.restore();
-      if (this.stEl) this.stEl.classList.add("on");
-    } else { cx.drawImage(lx.canvas, 0, 0, w, h); if (this.stEl) this.stEl.classList.remove("on"); }
-    // sunglasses, always on top and in place
-    if (NK.img.glasses) { const G = P.glasses, gy = oy + G.y * s; if (this.intro >= 1 || gy + G.h * s < scanY) { cx.save(); cx.globalAlpha = 1 - 0.92 * smooth(0.15, 0.75, A); cx.drawImage(NK.img.glasses, ox + G.x * s, gy, G.w * s, G.h * s); cx.restore(); } }
-    if (cells) this.drawGlyphs(cx, cells);
-    // scan line
-    if (this.intro < 1) { cx.save(); const g = cx.createLinearGradient(0, scanY - 14, 0, scanY + 4); g.addColorStop(0, "rgba(255,26,26,0)"); g.addColorStop(0.8, "rgba(255,120,110,.55)"); g.addColorStop(1, "rgba(255,255,255,.95)"); cx.fillStyle = g; cx.fillRect(0, scanY - 14, w, 18); cx.restore(); }
-    // DOM chrome: reticle + readout
+    for (let i = 0; i < heat.length; i++) heat[i] *= 0.9;
+    if (this.hover && !reduced) {
+      const pc = (this.pos.x / cw) | 0, pr = (this.pos.y / chh) | 0, tk = Math.floor(t * 5);
+      for (let dr = -4; dr <= 4; dr++) for (let dc = -8; dc <= 8; dc++) { const c = pc + dc, r = pr + dr; if (c < 0 || c >= cols || r < 0 || r >= rows) continue; const dd = Math.hypot(dc / 1.9, dr); if (dd < 4) { const v = (1 - dd / 4) * (0.6 + 0.4 * hash(c, r, tk)), i = r * cols + c; if (v > heat[i]) heat[i] = v; } }
+    }
+    if (this.img) this.drawPhoto(cx, t); else this.drawMono(cx, t);
     if (this.rt) { const on = this.hover; this.rt.style.opacity = on ? 1 : 0; if (on) this.rt.style.transform = "translate3d(" + (this.pos.x - 14).toFixed(1) + "px," + (this.pos.y - 14).toFixed(1) + "px,0)"; }
     if (this.xyEl) { const px2 = this.hover ? this.pos.x : w / 2, py2 = this.hover ? this.pos.y : h / 2; this.xyEl.textContent = "x " + String(Math.round(px2)).padStart(3, "0") + " y " + String(Math.round(py2)).padStart(3, "0"); }
   }
-  asciiCells(lx, A, ox, oy) {
-    const { w, h, s } = this, G = NK.grid, P = NK.PLATE, cols = this.o.cols, cw = w / cols, ch = cw * 2.0, rows = Math.ceil(h / ch), out = [];
-    lx.save(); lx.globalCompositeOperation = "destination-out";
+  drawMono(cx, t) {
+    const { cols, rows, cw, chh, map, heat, intro } = this, tk = reduced ? 0 : Math.floor(t * 6), sweep = reduced ? -99 : ((t * 0.09) % 1.7) * (rows + 10) - 5; let cur = "";
+    cx.font = "700 " + (cw * 1.55).toFixed(1) + 'px "Space Mono", ui-monospace, monospace'; cx.textAlign = "center"; cx.textBaseline = "middle";
     for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
-      const thr = hash(c, r, 3) * 0.72 + (c / cols) * 0.18 + (1 - r / rows) * 0.1;
-      if (A * 1.15 - 0.08 <= thr) continue;
-      const x = c * cw, y = r * ch; lx.fillStyle = "#000"; lx.fillRect(x, y, cw + 0.5, ch + 0.5);
-      const u = (x + cw / 2 - ox) / (P.w * s), v = (y + ch / 2 - oy) / (P.h * s); if (u < 0 || u > 1 || v < 0 || v > 1) continue;
-      const gx = Math.min(G.cols - 1, (u * G.cols) | 0), gy = Math.min(G.rows - 1, (v * G.rows) | 0), gi = gy * G.cols + gx;
-      const al = G.A[gi]; if (al < 90) continue; const L = G.L[gi] / 255, lv = Math.min(9, Math.floor(Math.pow(L, 0.9) * 10)); if (lv < 1) continue;
-      out.push(x + cw / 2, y + ch / 2, lv, L, hash(c, r, 7) < 0.05 ? 1 : 0);
+      const i = r * cols + c, k = intro >= 1 ? 1 : NK.morph(intro, c, r, cols, rows, 2); let dn = map[i], hot = 0;
+      if (k === 0) dn = 0;
+      else if (k === 2) { const hh = hash(c, r, tk + 13); dn = hh > 0.3 ? 0.3 + 0.62 * hash(c, r, tk + 17) : 0; hot = hh > 0.86 ? 1 : 0; }
+      else { if (dn > 0.3) { dn *= 0.9 + 0.1 * hash(c, r, tk); if (hash(c, r, 41) > 0.985) hot = 1; } const ds = Math.abs(r - sweep); if (ds < 0.9 && dn > 0.05) { dn = Math.max(dn, 0.7); hot = 1; } }
+      const hv = heat[i]; if (hv > 0.05) { if (hv * 0.9 > dn) dn = hv * 0.9; if (hv > 0.35) hot = 1; }
+      if (dn <= 0.04) continue; const lv = Math.min(9, (dn * 10) | 0); if (lv < 1) continue;
+      const a = Math.min(0.95, 0.1 + dn * 0.85), col = hot ? "255,26,26" : "255,255,255", key = col + "|" + ((a * 24) | 0);
+      if (key !== cur) { cur = key; cx.fillStyle = "rgba(" + col + "," + (((a * 24) | 0) / 24).toFixed(3) + ")"; }
+      cx.fillText(RAMP[lv], c * cw + cw * 0.5, r * chh + chh * 0.5);
     }
-    lx.restore(); this.cw = cw; this.chh = ch; return out;
   }
-  drawGlyphs(cx, out) {
-    cx.save(); cx.font = "700 " + (this.cw * 1.55).toFixed(1) + 'px "Space Mono", monospace'; cx.textAlign = "center"; cx.textBaseline = "middle";
-    for (let i = 0; i < out.length; i += 5) { const lv = out[i + 2], L = out[i + 3]; cx.fillStyle = out[i + 4] ? "rgba(255,26,26," + (0.5 + L * 0.5).toFixed(2) + ")" : "rgba(255,255,255," + (0.22 + L * 0.78).toFixed(2) + ")"; cx.fillText(RAMP[lv], out[i], out[i + 1]); }
-    cx.restore();
+  drawPhoto(cx, t) {
+    const { w, h, cols, rows, cw, chh, map, lx, intro, ascii: A } = this, d = this.dpr, im = this.img, m = NK.mouse, s = Math.max(w / im.width, h / im.height) * 1.04, dw = im.width * s, dh = im.height * s;
+    const scan = intro < 1 ? smooth(0.06, 0.92, intro) : 1, scanY = lerp(0, h + 20, scan);
+    lx.setTransform(d, 0, 0, d, 0, 0); lx.clearRect(0, 0, w, h);
+    lx.save(); lx.beginPath(); lx.rect(0, 0, w, scanY); lx.clip(); lx.drawImage(im, (w - dw) / 2 + m.nx * 5, h - dh + 3 + m.ny * 3, dw, dh); lx.restore();
+    const out = [];
+    if (A > 0.001) {
+      lx.save(); lx.globalCompositeOperation = "destination-out"; lx.fillStyle = "#000";
+      for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+        const thr = hash(c, r, 3) * 0.72 + (c / cols) * 0.18 + (1 - r / rows) * 0.1; if (A * 1.15 - 0.08 <= thr) continue;
+        lx.fillRect(c * cw, r * chh, cw + 0.5, chh + 0.5);
+        const L = map[r * cols + c], lv = Math.min(9, Math.floor(Math.pow(L, 0.9) * 10)); if (lv < 1) continue; out.push(c * cw + cw / 2, r * chh + chh / 2, lv, L, hash(c, r, 7) < 0.05 ? 1 : 0);
+      }
+      lx.restore();
+    }
+    cx.drawImage(this.layer, 0, 0, w, h);
+    if (out.length) {
+      cx.save(); cx.font = "700 " + (cw * 1.55).toFixed(1) + 'px "Space Mono", monospace'; cx.textAlign = "center"; cx.textBaseline = "middle";
+      for (let i = 0; i < out.length; i += 5) { const lv = out[i + 2], L = out[i + 3]; cx.fillStyle = out[i + 4] ? "rgba(255,26,26," + (0.5 + L * 0.5).toFixed(2) + ")" : "rgba(255,255,255," + (0.22 + L * 0.78).toFixed(2) + ")"; cx.fillText(RAMP[lv], out[i], out[i + 1]); }
+      cx.restore();
+    }
+    if (intro < 1) { cx.save(); const g = cx.createLinearGradient(0, scanY - 14, 0, scanY + 4); g.addColorStop(0, "rgba(255,26,26,0)"); g.addColorStop(0.8, "rgba(255,120,110,.55)"); g.addColorStop(1, "rgba(255,255,255,.95)"); cx.fillStyle = g; cx.fillRect(0, scanY - 14, w, 18); cx.restore(); }
   }
 };
 
