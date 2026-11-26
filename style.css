@@ -65,14 +65,12 @@ html:not([data-ready]) :is(#sky,#view,.fx,.hud-top,.dock,.hint){opacity:0}
 .pxl{display:block;aspect-ratio:var(--ar,8)}
 .pxs{display:grid;gap:.45em}
 
-/* the portrait frame: photo, X-ray lens, sunglasses, ASCII */
+/* the portrait frame: the NK monogram in characters, or the photo */
 .frame{position:relative;width:100%;aspect-ratio:4/5;background:#050506;border:1px solid var(--l2);overflow:visible;touch-action:pan-y;cursor:crosshair}
 .frame>canvas{position:absolute;inset:0;width:100%;height:100%;display:block}
 .ft{position:absolute;z-index:4;font-size:10px;line-height:1;letter-spacing:.14em;color:var(--steel4);background:rgba(0,0,0,.78);padding:.55em .7em;white-space:nowrap;pointer-events:none;text-transform:lowercase}
-.ft--tl{left:-1px;top:-1px;color:#fff}.ft--tr{right:-1px;top:-1px}.ft--bl{left:-1px;bottom:-1px}.ft--br{right:-1px;bottom:-1px}
+.ft--tl{left:-1px;top:-1px;color:#fff}.ft--bl{left:-1px;bottom:-1px}.ft--br{right:-1px;bottom:-1px}
 .ft--tl .dot{margin-right:.6em}
-.st{font-weight:400}.st--a{display:none;color:var(--red)}
-.ft--tr.on .st--a{display:inline}.ft--tr.on .st--i{display:none}
 .ruler{position:absolute;pointer-events:none;z-index:2}
 .ruler--t{left:0;right:0;top:-10px;height:6px;background:repeating-linear-gradient(90deg,var(--l3) 0 1px,transparent 1px 10px)}
 .ruler--l{top:0;bottom:0;left:-10px;width:6px;background:repeating-linear-gradient(0deg,var(--l3) 0 1px,transparent 1px 10px)}
@@ -185,7 +183,20 @@ main:focus{outline:none}
 .skills__lg button:hover,.skills__lg button.on{color:#fff}
 .skills__lg button:hover i,.skills__lg button.on i{width:26px;background:var(--red)}
 .skills__note{font-size:11px;letter-spacing:.1em;color:var(--steel4);line-height:1.7}
-.skills__hint{display:none;margin-top:12px}
+.skills__lg button em{margin-left:auto;font-style:normal;font-size:10px;letter-spacing:.06em;color:var(--steel6)}
+.skills__lg button{cursor:pointer}
+.skills__pick{display:flex;flex-wrap:wrap;align-content:flex-start;gap:6px;min-height:76px;margin:0 0 14px}
+.skills__pick .chip{pointer-events:auto;cursor:pointer;background:rgba(0,0,0,.55);transition:color .2s,border-color .2s;animation:chipin .35s both}
+.skills__pick .chip:hover,.skills__pick .chip.on{color:#fff;border-color:var(--red)}
+@keyframes chipin{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:none}}
+.skills__pick:empty::before{content:attr(data-hint);font-size:10px;line-height:1.7;letter-spacing:.1em;color:var(--steel6)}
+.sktip{position:fixed;left:0;top:0;z-index:7;pointer-events:none;opacity:0;transition:opacity .15s;max-width:260px;padding:9px 12px 10px;border:1px solid var(--l2);background:rgba(4,4,6,.93);font-size:11px;line-height:1.5;letter-spacing:.05em;color:var(--steel4)}
+.sktip b{display:block;font:600 17px/1.1 var(--disp);text-transform:uppercase;letter-spacing:.02em;color:#fff;margin-bottom:4px}
+.sktip span{display:block}
+.sktip__u{color:#c9cad0;margin-top:3px}
+html.sk-live{cursor:grab}
+html.sk-hover{cursor:pointer}
+html.sk-drag{cursor:grabbing;user-select:none}
 .skills__list{display:none}
 
 /* ai */
@@ -196,6 +207,12 @@ main:focus{outline:none}
 .it--aisplit{width:min(340px,26vw)}
 .it--aisplit .small{margin:0 0 16px;line-height:1.7}
 .it--aisplit .keep{color:var(--red)}
+/* about: a bit more about me */
+.it--me1{width:min(380px,28vw)}
+.it--me1 .lead{font-size:12.5px;line-height:1.75;letter-spacing:.02em;color:#c9cad0;margin-top:12px}
+.it--me2{width:min(340px,26vw)}
+.it--me2 .mf+.mf{margin-top:14px}
+.it--me2 .small{margin:5px 0 0;line-height:1.65}
 .it--term{width:min(560px,46vw);padding:20px 22px 22px;font-size:12px;line-height:1.4}
 .ai__cmd{display:flex;align-items:center;margin-bottom:16px;color:#fff;min-height:1.4em}
 .ps1{color:var(--red);margin-right:.7em}
@@ -266,7 +283,7 @@ html.short .it--scap{width:min(280px,34vw)}
 html.short .it--scap .big2{font-size:34px;margin:6px 0 10px}
 html.short .skills__lg{margin-bottom:0}
 html.short .skills__lg button{padding:.32em .2em;font-size:10px}
-html.short .skills__note{display:none}
+html.short .skills__note,html.short .skills__pick{display:none}
 html.short .tg{width:min(222px,27vw);min-width:0;padding:11px 14px 12px}
 html.short .tg .tag{margin-bottom:6px}
 html.short .tg .big2{font-size:clamp(18px,2.6vw,22px)}
@@ -277,10 +294,28 @@ html.short .it--ailead .slop{margin:4px 0 6px;font-size:20px}
 html.short .it--ailead .lead{font-size:11px;line-height:1.5}
 html.short .it--aisplit .small{font-size:10px;margin-bottom:8px;line-height:1.5;letter-spacing:.04em}
 html.short .it--aisplit .big2{font-size:15px;line-height:1.15}
+html.short .it--me1,html.short .it--me2{width:min(360px,43vw);padding:11px 15px 12px}
+html.short .it--me1 .lead{font-size:11px;line-height:1.5;margin-top:6px}
+html.short .it--me2 .mf{display:block;font-size:10px;line-height:1.45}
+html.short .it--me2 .mf .tag,html.short .it--me2 .mf .small{display:inline;margin:0}
+html.short .it--me2 .mf .tag{margin-right:.55em;white-space:normal}
+html.short .it--me2 .mf .tag::after{content:":"}
+html.short .it--me2 .mf+.mf{margin-top:7px}
+html.short .it--me2 .small{font-size:10px;line-height:1.45;letter-spacing:.03em}
 html.short .rdet{align-content:start;gap:10px;width:min(300px,38vw);max-height:calc(var(--vh) - 104px)}
 html.short .rdet__h{font-size:clamp(24px,5.4vw,34px)}
 html.short .rdet__p{font-size:11.5px;line-height:1.55}
 html.short .rtab{font-size:10px;padding:.42em .65em}
+@media (max-height:360px){
+html.short .it--me1,html.short .it--me2,html.short .it--ailead,html.short .it--aisplit{padding:8px 12px 9px}
+html.short .it--me1 .lead,html.short .it--ailead .lead{font-size:9.5px;line-height:1.42;margin-top:4px}
+html.short .it--me2 .mf{font-size:9px;line-height:1.4}
+html.short .it--me2 .small,html.short .it--aisplit .small{font-size:9px;line-height:1.4}
+html.short .it--me2 .mf+.mf{margin-top:5px}
+html.short .it--aisplit .small{margin-bottom:5px}
+html.short .it--aisplit .big2{font-size:13px}
+html.short .it--ailead .slop{font-size:17px;margin:2px 0 4px}
+}
 @media (max-height:420px){
 html.short .pj{padding:10px 16px 11px}
 html.short .pj__head{margin-bottom:6px}
@@ -302,6 +337,21 @@ html.short .step{padding:9px 10px 10px;gap:4px}
 html.short .step .desc{font-size:10px;line-height:1.35}
 html.short .it--contact{gap:12px}
 html.short .mail__a{font-size:clamp(18px,3.4vw,28px)}
+@media (max-height:360px){
+html.short .it--term{width:min(560px,62vw);padding:9px 14px 10px;font-size:10px}
+html.short .ai__row{padding:.3em 14px;width:calc(100% + 28px);margin:0 -14px}
+html.short .ai__cmd{margin-bottom:5px}
+html.short .ai__out{min-height:3.4em;margin-top:6px}
+html.short .ai__out-desc{font-size:10px;line-height:1.45}
+html.short .it--flow{padding:9px 14px 10px}
+html.short .it--flow>.tag{margin-bottom:7px}
+html.short .steps{min-height:142px}
+html.short .step{padding:6px 8px 7px;gap:3px}
+html.short .step b{font-size:15px}
+html.short .step .desc{font-size:9px;line-height:1.3}
+html.short .skills__lg button{padding:.14em .2em;font-size:9.5px}
+html.short .it--scap .big2{font-size:27px;margin:3px 0 6px}
+}
 
 /* ───────── tall flight (phones, tablets upright): the same flight, laid out for a narrow screen ───────── */
 html.tall{--cap:clamp(40px,min(calc(var(--vw)*.15),calc(var(--vh)*.07)),64px);--fw:max(130px,min(calc(var(--vw)*.68),calc((var(--vh) - 349px - 2*var(--cap))*.8)));
@@ -355,14 +405,21 @@ html.tall .skills__lg button{border:1px solid var(--l2);padding:.55em .75em;back
 html.tall .skills__lg button i{display:none}
 html.tall .skills__lg button.on{border-color:var(--red);color:#fff}
 html.tall .skills__note{display:none}
-html.tall .skills__hint{display:inline-flex}
+html.tall .skills__lg button em{display:none}
+html.tall .skills__pick{min-height:58px;gap:5px;margin:0 0 8px}
+html.tall .skills__pick .chip{font-size:10px;padding:.3em .55em}
 /* ai */
 html.tall .it--ailead{width:min(86vw,430px);padding:14px 16px}
 html.tall .it--aisplit{width:min(86vw,430px);padding:14px 16px}
 html.tall .it--aisplit .small{font-size:11px;margin-bottom:12px}
 html.tall .it--aisplit .big2{font-size:22px}
 html.tall .it--ailead .slop{font-size:24px;margin:10px 0 10px}
+html.tall .it--ailead>.tag,html.tall .it--me1>.tag{white-space:normal;line-height:1.35}
 html.tall .it--ailead .lead{font-size:11.5px;line-height:1.65}
+html.tall .it--me1,html.tall .it--me2{width:min(86vw,430px);padding:14px 16px}
+html.tall .it--me1 .lead{font-size:11.5px;line-height:1.65;margin-top:10px}
+html.tall .it--me2 .mf+.mf{margin-top:10px}
+html.tall .it--me2 .small{font-size:11px;margin-top:3px}
 html.tall .it--term{width:min(90vw,520px);padding:16px 16px 18px;font-size:11.5px}
 html.tall .ai__head{display:none}
 html.tall .ai__row{grid-template-columns:1.2em minmax(0,1fr);row-gap:.2em;width:calc(100% + 32px);margin:0 -16px;padding:.65em 16px}
@@ -391,6 +448,10 @@ html.tall.hs .it--ailead .slop{font-size:21px;margin:6px 0}
 html.tall.hs .it--ailead .lead{font-size:11px;line-height:1.55}
 html.tall.hs .it--aisplit .small{font-size:10px;line-height:1.5;margin-bottom:8px}
 html.tall.hs .it--aisplit .big2{font-size:17px;line-height:1.15}
+html.tall.hs .it--me1,html.tall.hs .it--me2{padding:11px 14px 12px}
+html.tall.hs .it--me1 .lead{font-size:11px;line-height:1.55;margin-top:6px}
+html.tall.hs .it--me2 .mf+.mf{margin-top:7px}
+html.tall.hs .it--me2 .small{font-size:10px;line-height:1.5;margin-top:2px}
 html.tall.hs .it--term{padding:12px 14px 14px;font-size:11px}
 html.tall.hs .ai__cmd{margin-bottom:6px}
 html.tall.hs .ai__row{padding:.42em 14px;width:calc(100% + 28px);margin:0 -14px}
@@ -408,7 +469,8 @@ html.tall.hxs .step .desc{display:none}
 html.tall.hxs .it--scap .big2{font-size:clamp(30px,9.5vw,40px);margin-top:4px}
 html.tall.hxs .skills__lg{gap:5px;margin-bottom:8px}
 html.tall.hxs .skills__lg button{padding:.42em .6em;font-size:9.5px}
-html.tall.hxs .skills__hint{display:none}
+html.tall.hxs .skills__pick{min-height:46px;gap:4px;margin-bottom:6px}
+html.tall.hxs .skills__pick .chip{font-size:9.5px;padding:.25em .5em}
 
 /* ───────── tall flight and flat page share the stacked flow chart ───────── */
 html.tall .it--flow,html.flat .it--flow{width:min(90vw,520px);padding:16px 16px 18px}
@@ -434,7 +496,7 @@ html.flat #world{position:relative;inset:auto;transform-style:flat;display:flex;
 html.flat .it{position:relative;left:auto;top:auto!important;width:100%!important;transform:none!important;opacity:1!important;visibility:visible!important;pointer-events:auto!important;will-change:auto}
 html.flat .asc .lt{display:block;font:700 21vw/.86 var(--disp);text-transform:uppercase;letter-spacing:.005em}
 html.flat .asc .lt.g{color:transparent;-webkit-text-stroke:1.5px rgba(255,255,255,.9)}
-html.flat .it--about .lt,html.flat .it--ai .lt{font-size:min(11.2vw,120px)}
+html.flat .it--about .lt,html.flat .it--me .lt,html.flat .it--ai .lt{font-size:min(11.2vw,120px)}
 html.flat .it--nameL .lt,html.flat .it--nameR .lt{font-size:min(19vw,200px)}
 html.flat .it--frame{width:min(84%,420px)!important;align-self:center}
 html.flat .it--flow{max-width:600px}
@@ -442,8 +504,8 @@ html.flat .it--nameR{margin-top:-34px}
 html.flat .it--rows{text-align:left;justify-items:start;width:100%}
 html.flat .pj__name{white-space:normal;width:auto}
 html.flat .pj__more{display:block}
-html.flat .tg,html.flat .it--ailead,html.flat .it--aisplit,html.flat .it--term{min-width:0}
-html.flat .skills__lg,html.flat .skills__note,html.flat .skills__hint{display:none}
+html.flat .tg,html.flat .it--me1,html.flat .it--me2,html.flat .it--ailead,html.flat .it--aisplit,html.flat .it--term{min-width:0}
+html.flat .skills__lg,html.flat .skills__pick,html.flat .skills__note,html.flat .sktip{display:none}
 html.flat .skills__list{display:grid;gap:14px}
 html.flat .skills__list h4{font-size:10px;letter-spacing:.16em;color:var(--steel4);margin-bottom:6px;font-weight:400;text-transform:lowercase}
 html.flat .skills__list div div{display:flex;flex-wrap:wrap;gap:6px}
