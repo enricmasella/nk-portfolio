@@ -9,12 +9,15 @@ const world = B.world, view = $("#view"), sk = D.skills, P = 900, Q = NK.quality
 NK.boot(() => {
   NK.decode.gain = reduced ? 1 : 0;
   /* the camera: [from, to, weight]. weight = how much scroll the leg takes, in screens; a leg with equal ends is a hold */
-  const Z = B.Z, LEG = [
-    [0, 1400, 1.0], [1400, 1400, 0.3],                                  /* hero → about: the path */
-    [1400, 2500, 0.9], [2500, 2500, 0.5],                               /* → about: a bit more about me */
-    [2500, 3600, 0.9], [3600, 3600, 0.3], [3600, 4100, 0.55], [4100, 4100, 0.5], [4100, 4600, 0.55], [4600, 4600, 0.45],   /* → about: how I work with AI (stance, tools, flow) */
-    [4600, 5800, 0.9], [5800, 6700, 0.8], [6700, 7700, 0.7], [7700, 8700, 0.7], [8700, 9700, 0.7], [9700, 10600, 0.8],        /* → work: the word, four cards, the ring */
-    [10600, 10600, 1.1], [10600, 12200, 1.5], [12200, 12200, 1.3], [12200, 13400, 0.9]                                       /* ring, → skills (constellation), → contact */
+  /* every leg is derived from the depth table (world.js), so moving a stop there moves its camera stop here */
+  const Z = B.Z, ZA = -Z.about, ZM = -Z.me, ZW = -Z.work, ZC = -Z.card0, ZR = Z.ring, ZS = -Z.skillsWord, ZP = -Z.scap, ZE = -Z.contact, LEG = [
+    [0, ZA, 1.0], [ZA, ZA, 0.3],                                                                      /* 0-1  hero → about: the path */
+    [ZA, ZM, 0.9], [ZM, ZM, 0.5],                                                                     /* 2-3  → about: a bit more about me */
+    [ZM, ZW, 0.9], [ZW, ZW, 0.45],                                                                    /* 4-5  → WORK: the word holds, alone */
+    [ZW, ZC, 0.8], [ZC, ZC + 1000, 0.7], [ZC + 1000, ZC + 2000, 0.7], [ZC + 2000, ZC + 3000, 0.7], [ZC + 3000, ZR, 0.8],   /* 6-10 → the four cards, the ring */
+    [ZR, ZR, 1.1],                                                                                    /* 11   the ring */
+    [ZR, ZS, 0.9], [ZS, ZS, 0.45],                                                                    /* 12-13 → SKILLS: the word holds, alone */
+    [ZS, ZP, 1.1], [ZP, ZP, 1.3], [ZP, ZE, 0.9]                                                       /* 14-16 → the constellation, → contact */
   ];
   const SUM = LEG.reduce((s, l) => s + l[2], 0), CUM = []; { let a = 0; for (const l of LEG) { CUM.push(a); a += l[2]; } }
   Object.assign(B, { LEG, CUM, SUM, cam: 0, ringVis: 0, contactK: 0, constK: 0 });
@@ -44,8 +47,8 @@ NK.boot(() => {
   /* ───────── the flight ───────── */
   items.forEach((it) => { if (it.el.dataset.at) { it.at = new B.AT_(it.el, it.el.dataset.at); B.ATs.push(it.at); } });
   /* on a phone the stops that hold several pieces are stacked by their real heights (so no language or font size makes two of them overlap) */
-  const stacks = [[".it--about", ".it--tg1", ".it--tg2", ".it--tg3"], [".it--me", ".it--me1", ".it--me2"], [".it--ai", ".it--ailead", ".it--aisplit"]].map((g) => g.map((s) => items.find((it) => it.el.matches(s))).filter(Boolean));
-  const singles = items.filter((it) => it.el.matches(".pj, .it--term, .it--flow, .it--contact"));
+  const stacks = [[".it--about", ".it--tg1", ".it--tg2", ".it--tg3"], [".it--me", ".it--me1", ".it--me2"]].map((g) => g.map((s) => items.find((it) => it.el.matches(s))).filter(Boolean));
+  const singles = items.filter((it) => it.el.matches(".pj, .it--contact"));
   B.stack = () => {
     items.forEach((it) => { it.k = 1; });
     if (!NK.tall) { if (B.measureC) B.measureC(); return; }
@@ -70,8 +73,8 @@ NK.boot(() => {
   };
   const yAt = (leg, off = 0) => () => NK.scroll.vh * (CUM[leg] + off);
   NK.sections = [
-    { key: "nav.index", hash: "top", dock: true, y: () => 0 }, { key: "nav.about", hash: "about", dock: true, y: yAt(1, 0.02) }, { key: "nav.work", hash: "work", dock: true, y: yAt(11, 0.02) },
-    { key: "nav.project", hash: "project", dock: false, y: yAt(16, 0.5) }, { key: "nav.skills", hash: "skills", dock: true, y: yAt(18, 0.15) },
+    { key: "nav.index", hash: "top", dock: true, y: () => 0 }, { key: "nav.about", hash: "about", dock: true, y: yAt(1, 0.02) }, { key: "nav.work", hash: "work", dock: true, y: yAt(5, 0.02) },
+    { key: "nav.project", hash: "project", dock: false, y: yAt(11, 0.5) }, { key: "nav.skills", hash: "skills", dock: true, y: yAt(13, 0.02) },
     { key: "nav.contact", hash: "contact", dock: true, y: () => NK.scroll.max }
   ];
   NK.dock();
@@ -227,8 +230,8 @@ NK.boot(() => {
     VW = NK.VW; VH = NK.VH; const cam = camAt(S), tall = NK.tall; B.cam = cam; if (tall && ((B.fc = (B.fc || 0) + 1) % 90 === 0)) B.measureC();
     B.ringVis = smooth(Z.ring - 600, Z.ring - 50, cam) * (1 - smooth(Z.ring + 50, Z.ring + 500, cam));
     B.contactK = smooth(-1000, -350, B.Z.contact + cam);
-    /* the constellation only exists after the ring: nothing of it shows through the cards or the ring */
-    const ck = (1 - B.ringVis) * (1 - smooth(-150, 330, CZ + cam)) * smooth(Z.ring + 100, Z.ring + 1000, cam); B.constK = ck * smooth(-4200, -1500, CZ + cam);
+    /* the constellation only exists once the word SKILLS has gone by: nothing of it shows through the cards, the ring or the title */
+    const ck = (1 - B.ringVis) * (1 - smooth(-150, 330, CZ + cam)) * smooth(ZS + 300, ZS + 900, cam); B.constK = ck * smooth(-4200, -1500, CZ + cam);
     NK.decode.gain = reduced ? 1 : smooth(0, 1, (now - NK.startAt - 500) / 1800);
     portrait.ascii = smooth(0.1, 0.85, cam / 1100);
     if (hint) hint.style.opacity = S.y > 40 ? 0 : 1;
