@@ -81,7 +81,7 @@ html:not([data-ready]) :is(#sky,#view,.fx,.hud-top,.dock,.hint){opacity:0}
 /* ───────── chrome: top bar, dock, hint ───────── */
 .hud-top{position:fixed;left:0;right:0;top:0;z-index:7;display:flex;justify-content:space-between;align-items:flex-start;gap:12px;padding:max(14px,env(safe-area-inset-top,0px)) var(--padr) 0 var(--pad);pointer-events:none}
 .hud-top>*{pointer-events:auto}
-.logo{position:relative;display:block;flex:none;--lh:72px;width:calc(var(--lh)*.3975);height:var(--lh)}
+.logo{position:relative;display:block;flex:none;--lh:88px;width:calc(var(--lh)*.3975);height:var(--lh);margin:calc(var(--lh)*.3) 0 0 calc(var(--lh)*.1)}
 .logo__cv{position:fixed;left:0;top:0;pointer-events:none}
 main:focus{outline:none}
 .hud-r{display:flex;align-items:center;gap:12px}
@@ -220,7 +220,7 @@ html.sk-drag{cursor:grabbing;user-select:none}
 html.short .hint{display:none}
 html.short .dock{grid-template-columns:1fr;justify-items:center}
 html.short .dock__l,html.short .dock__r{display:none}
-html.short .logo{--lh:48px}
+html.short .logo{--lh:58px}
 html.short .it--frame{width:min(25vw,calc((var(--vh) - 112px)*.8))}
 html.short .it--rows{width:min(300px,34vw);gap:10px}
 html.short .it--rows .tag{display:none}
@@ -279,7 +279,7 @@ html.short .it--scap .big2{font-size:27px;margin:3px 0 6px}
 html.tall{--cap:clamp(40px,min(calc(var(--vw)*.15),calc(var(--vh)*.07)),64px);--sg:clamp(8px,calc((var(--vh) - 560px)*.07),18px);--fw:max(130px,min(calc(var(--vw)*.68),calc((var(--vh) - 349px - 3*var(--sg) - 2*var(--cap))*.8)));
   --hy:max(0px,calc((var(--vh) - var(--dock) - 100px - (2*var(--cap) + 169px + 3*var(--sg) + 1.25*var(--fw)))/2))}
 html.tall .hud-gh{display:none}
-html.tall .logo{--lh:56px}
+html.tall .logo{--lh:66px}
 html.tall .dock{grid-template-columns:1fr;justify-items:center}
 html.tall .dock__l,html.tall .dock__r{display:none}
 html.tall .dock__c{gap:0}
