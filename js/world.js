@@ -8,8 +8,12 @@ const B = (NK.B = { ATs: [], world: $("#world"), items: [] });
 const has = (k) => k in I.dict.en;
 const up = (k) => T(k).toUpperCase();
 
-/* depth of every stop on the flight (the camera travels along z) */
-B.Z = { about: -1400, me: -2500, aiA: -3600, aiB: -4100, aiC: -4600, work: -5800, card0: -6700, ring: 10600, skillsWord: -11400, scap: -12200, const: -12450, contact: -13400 };
+/* depth of every stop on the flight (the camera travels along z).
+   The two big words (WORK, SKILLS) sit far in front of what follows them, so each title is seen on its own before its content appears. */
+{
+  const work = -3800, card0 = work - 1400, ring = -(card0 - 3000) + 900, skillsWord = -(ring + 1300), scap = skillsWord - 1300;
+  B.Z = { about: -1400, me: -2500, work, card0, ring, skillsWord, scap, const: scap - 250, contact: scap - 250 - 950 };
+}
 
 /* ───────── project explanations (shared by the ring panel, and by the “how it is made” fold on the flat page) ───────── */
 const num = (v) => (typeof v === "number" ? ' data-fmt="' + v + '"' : v && v.k ? ' data-i18n="' + v.k + '"' : "");
@@ -33,7 +37,7 @@ B.live = live;
 /* positions are “x,y,anchor,rotateY”: x and y in fractions of the screen width and height (the flight reads data-pw on wide screens, data-pt on tall ones) */
 const parts = [];
 const add = (cls, inner, z, pw, pt, extra = "") => parts.push('<div class="it ' + cls + '" data-z="' + z + '" data-pw="' + pw + '" data-pt="' + (pt || pw) + '" ' + extra + ">" + inner + "</div>");
-const AT_LINES = { nameL: [["", 0, "ENRIC"]], nameR: [["", 1, "MASELLA"]], about: [["timeline.head1", 0], ["timeline.head2", 1]], me: [["about.me.head1", 0], ["about.me.head2", 1]], work: [["nav.work", 1]], skills: [["nav.skills", 1]], ai: [["ai.head1", 0], ["ai.head2", 1]] };
+const AT_LINES = { nameL: [["", 0, "ENRIC"]], nameR: [["", 1, "MASELLA"]], about: [["timeline.head1", 0], ["timeline.head2", 1]], me: [["about.me.head1", 0], ["about.me.head2", 1]], work: [["nav.work", 1]], skills: [["nav.skills", 1]] };
 /* the ASCII type of an item; the real text sits underneath it (visible only on the flat page) */
 const asc = (key, cls, z, pw, pt, extra = "") => add(cls + " asc", AT_LINES[key].map(([k, g, lit]) => '<span class="lt' + (g ? " g" : "") + '" aria-hidden="true"' + (k ? ' data-i18n="' + k + '"' : "") + ">" + (lit || "") + "</span>").join(""), z, pw, pt, 'data-at="' + key + '" aria-hidden="true" ' + extra);
 const glass = (inner, z, pw, pt, cls = "", extra = "") => add("glass tg bk " + cls, inner, z, pw, pt, extra);
@@ -42,10 +46,10 @@ B.build = () => {
   parts.length = 0;
   parts.push('<h1 class="sr">' + esc(D.name) + "</h1>");
   /* hero */
-  asc("nameL", "it--nameL", -260, "-0.17,0.17,-1,0", "0,0,0,0", 'data-zt="0"');
-  asc("nameR", "it--nameR", -260, "0.172,-0.15,0,0", "0,0,-1,0", 'data-zt="0"');
-  add("it--frame", NK.frameHTML(), 0, "0,-0.05,-0.5,0", "0,0,-0.5,0", 'data-ps="0,0.01,-0.5,0"');
-  add("it--rows", '<p class="tag"><i class="dot live"></i><span data-dc data-i18n="world.portfolio"></span><span data-dc data-i18n="common.location"></span></p><ul class="rows"><li><span class="gt">&gt;</span> <span data-dc data-i18n="hero.rowRole"></span></li><li><span class="gt">&gt;</span> <span data-dc data-i18n="hero.rowAi"></span></li><li><span class="gt">&gt;</span> <span data-dc data-i18n="hero.rowSlop"></span></li></ul><a class="btn" href="mailto:' + D.email + '"><i class="dot live"></i><span data-i18n="hero.mail"></span></a>', 60, "0,0.31,-0.5,0", "0,0,-0.5,0", 'data-zt="0" data-ps="0.3,0.19,-0.5,0"');
+  asc("nameL", "it--nameL", -260, "-0.205,0.15,-1,0", "0,0,0,0", 'data-zt="0" data-ps="-0.225,0.17,-1,0"');
+  asc("nameR", "it--nameR", -260, "0.205,-0.18,0,0", "0,0,-1,0", 'data-zt="0" data-ps="0.22,-0.18,0,0"');
+  add("it--frame", NK.frameHTML(), 0, "0,-0.085,-0.5,0", "0,0,-0.5,0", 'data-ps="0,0.01,-0.5,0"');
+  add("it--rows", '<p class="tag"><i class="dot live"></i><span data-dc data-i18n="world.portfolio"></span><span data-dc data-i18n="common.location"></span></p><ul class="rows"><li><span class="gt">&gt;</span> <span data-dc data-i18n="hero.rowRole"></span></li><li><span class="gt">&gt;</span> <span data-dc data-i18n="hero.rowAi"></span></li><li><span class="gt">&gt;</span> <span data-dc data-i18n="hero.rowSlop"></span></li></ul><a class="btn" href="mailto:' + D.email + '"><i class="dot live"></i><span data-i18n="hero.mail"></span></a>', 60, "0,0.3,-0.5,0", "0,0,-0.5,0", 'data-zt="0" data-ps="0.3,0.19,-0.5,0"');
   /* about */
   parts.push('<h2 class="sr"><span data-i18n="timeline.head1"></span> <span data-i18n="timeline.head2"></span></h2>');
   asc("about", "it--about", -1400, "0,-0.06,-0.5,0", "0,-0.3,-0.5,0", 'data-zt="-1400" data-zs="-1400" data-ps="0,-0.17,-0.5,0"');
@@ -58,18 +62,6 @@ B.build = () => {
   asc("me", "it--me", B.Z.me, "0,-0.1,-0.5,0", "0,-0.2,-0.5,0", ME + ' data-ps="0,-0.215,-0.5,0"');
   glass('<p class="tag"><i class="dot live"></i><span data-i18n="about.me.label"></span></p><p class="small lead" data-dc data-i18n="about.me.lead"></p>', B.Z.me + 80, "-0.27,0.22,-0.5,0", "0,0.08,-0.5,0", "it--me1", ME + ' data-ps="-0.245,0.11,-0.5,0"');
   glass([1, 2, 3].map((n) => '<div class="mf"><p class="tag" data-i18n="about.me.f' + n + '.label"></p><p class="small" data-i18n="about.me.f' + n + '"></p></div>').join(""), B.Z.me - 80, "0.3,0.23,-0.5,0", "0,0.31,-0.5,0", "it--me2", ME + ' data-ps="0.245,0.11,-0.5,0"');
-  /* about, third stop: how I work with AI — the stance, the tools (a terminal), how a change gets made (a flow) */
-  parts.push('<h2 class="sr"><span data-i18n="ai.head1"></span> <span data-i18n="ai.head2"></span></h2>');
-  asc("ai", "it--ai", B.Z.aiA, "0,-0.1,-0.5,0", "0,-0.2,-0.5,0", 'data-fi="520" data-fo="60" data-zt="' + B.Z.aiA + '" data-zs="' + B.Z.aiA + '" data-ps="0,-0.215,-0.5,0"');
-  glass('<p class="tag"><i class="dot live"></i><span data-i18n="ai.label"></span></p><p class="slop"><svg viewBox="0 0 16 16" aria-hidden="true" focusable="false"><circle cx="8" cy="8" r="6"/><path d="M3.8 12.2 12.2 3.8"/></svg><span data-i18n="ai.slop"></span></p><p class="small lead" data-dc data-i18n="ai.lead"></p>', B.Z.aiA + 80, "-0.27,0.22,-0.5,0", "0,0.08,-0.5,0", "it--ailead", 'data-fi="520" data-fo="60" data-zt="' + B.Z.aiA + '" data-zs="' + B.Z.aiA + '" data-ps="-0.245,0.11,-0.5,0"');
-  glass('<p class="tag" data-i18n="ai.helps.label"></p><p class="small" data-i18n="ai.helps"></p><p class="tag keep" data-i18n="ai.keep.label"></p><p class="big2" data-i18n="ai.keep"></p>', B.Z.aiA - 80, "0.3,0.23,-0.5,0", "0,0.31,-0.5,0", "it--aisplit", 'data-fi="520" data-fo="60" data-zt="' + B.Z.aiA + '" data-zs="' + B.Z.aiA + '" data-ps="0.245,0.11,-0.5,0"');
-  add("glass bk it--term", '<p class="ai__cmd"><span class="ps1" aria-hidden="true">$</span><span data-cmd data-i18n="ai.term.cmd"></span><i class="caret" aria-hidden="true"></i></p><div class="ai__head" aria-hidden="true"><span></span><span data-i18n="ai.term.tool"></span><span data-i18n="ai.term.use"></span></div>' +
-    '<div class="ai__rows" role="tablist" aria-orientation="vertical" data-tools data-i18n-attr="aria-label:ai.term.pick">' + D.tools.map(([name, k], i) => '<button type="button" class="ai__row" role="tab" id="ai-tab-' + i + '" data-tool="' + i + '" aria-selected="' + (i === 0) + '" aria-controls="ai-out" tabindex="' + (i === 0 ? 0 : -1) + '"><span class="ptr" aria-hidden="true">&gt;</span><span class="tool">' + esc(name) + '</span><span class="use" data-i18n="ai.' + k + '.use"></span></button>').join("") +
-    '</div><div class="ai__out" id="ai-out" role="tabpanel" aria-live="polite"><p class="ai__out-name"><span aria-hidden="true">&gt;</span><b data-out-name></b></p><p class="ai__out-desc" data-out-desc></p></div>', B.Z.aiB, "0,0,-0.5,-4", "0,0,-0.5,0", 'data-fi="520" data-fo="60"');
-  add("glass bk it--flow", '<p class="tag" data-i18n="ai.flow.label"></p><div class="ai__board"><div class="lane lane--me" aria-hidden="true"><span data-i18n="ai.flow.me"></span></div><div class="lane lane--ai" aria-hidden="true"><span data-i18n="ai.flow.ai"></span></div>' +
-    '<svg class="wires" viewBox="0 0 500 50" preserveAspectRatio="none" aria-hidden="true" focusable="false"><path data-wire d="M50 10H100V30H150"/><path data-wire d="M150 30H200V10H250"/><path data-wire d="M250 10H350"/><path data-wire d="M350 10H450"/><path class="back" data-back d="M350 10V45H150V30"/><path class="back" data-back d="M250 10V45"/></svg>' +
-    '<ol class="steps">' + D.flow.map(([k, who], i) => '<li class="step step--' + who + (i === D.flow.length - 1 ? " step--end" : "") + '" data-step="' + i + '" style="--c:' + (i + 1) + ";--r:" + (who === "me" ? 1 : 2) + '"><span class="who" data-i18n="ai.flow.' + who + '"></span><b data-i18n="ai.' + k + '.name"></b><span class="desc" data-i18n="ai.' + k + '.desc"></span></li>').join("") + '</ol>' +
-    '<p class="back" data-backnote><span class="ico" aria-hidden="true">&lt;--</span><span data-i18n="ai.back"></span></p></div>', B.Z.aiC, "0,0,-0.5,4", "0,0,-0.5,0", 'data-fi="520" data-fo="60"');
   /* work: the word, then the four cards flown through quickly */
   parts.push('<h2 class="sr" data-i18n="nav.work"></h2>');
   asc("work", "word", B.Z.work, "0,0,-0.5,0", "0,-0.04,-0.5,0");
@@ -77,7 +69,7 @@ B.build = () => {
     '<header class="pj__head"><span class="tag">' + live(p) + '</span><span class="tag" data-i18n="proj.' + p.id + '.type"></span></header>' +
     '<h3 class="pj__name" data-dc="line">' + esc(p.name) + '</h3><div class="pj__row"><div><p class="pj__sum" data-dc data-i18n="proj.' + p.id + '.blurb"></p><ul class="pj__stack">' + p.stack.map((s) => '<li class="chip">' + esc(s) + "</li>").join("") + '</ul><dl class="pj__fig">' + p.fig.map(stat).join("") + '</dl></div><div class="pj__art"><canvas data-art="' + p.art + '" aria-hidden="true"></canvas><span class="ft ft--bl" aria-hidden="true" data-i18n="art.' + p.id + '"></span></div></div>' +
     '<details class="pj__more"><summary data-i18n="proj.how"></summary>' + B.detailBody(p, false) + "</details>",
-    B.Z.card0 - i * 1000, (i % 2 ? 0.05 : -0.05) + ",0,-0.5," + (i % 2 ? -6 : 6), (i % 2 ? 0.02 : -0.02) + ",0,-0.5," + (i % 2 ? -3 : 3)));
+    B.Z.card0 - i * 1000, (i % 2 ? 0.05 : -0.05) + ",0,-0.5," + (i % 2 ? -6 : 6), (i % 2 ? 0.02 : -0.02) + ",0,-0.5," + (i % 2 ? -3 : 3), i ? "" : 'data-fi="1100"'));
   /* skills: the word, then the constellation (drawn on the sky); this caption carries its legend */
   parts.push('<h2 class="sr" data-i18n="nav.skills"></h2>');
   asc("skills", "word", B.Z.skillsWord, "0,0,-0.5,0", "0,-0.04,-0.5,0");
@@ -85,7 +77,7 @@ B.build = () => {
     '<div class="scap__bot"><div class="skills__lg" data-lg role="group" data-i18n-attr="aria-label:nav.skills">' + D.skills.worked.map(([k, l], i) => '<button type="button" data-k="' + i + '"><i></i><span data-i18n="' + k + '"></span><em>' + l.length + "</em></button>").join("") + '<button type="button" data-k="' + D.skills.worked.length + '"><i></i><span data-i18n="skills.exploring"></span><em>' + D.skills.exploring.length + '</em></button></div><div class="skills__pick" data-pick data-i18n-attr="aria-label:nav.skills;data-hint:' + (NK.touch ? "skills.tapHint" : "skills.hoverHint") + '"></div>' +
     '<p class="skills__note"><span data-i18n="skills.note.near"></span><br><span data-i18n="skills.note.far"></span><br><span data-i18n="skills.exploringNote"></span></p></div>' +
     '<div class="skills__list">' + D.skills.worked.map(([k, it]) => '<div><h4 data-i18n="' + k + '"></h4><div>' + it.map((s) => '<span class="chip">' + esc(s) + "</span>").join("") + "</div></div>").join("") + '<div><h4><span data-i18n="skills.exploring"></span> &mdash; <span data-i18n="skills.exploringNote"></span></h4><div>' + D.skills.exploring.map((s) => '<span class="chip">' + esc(s) + "</span>").join("") + "</div></div></div>",
-    B.Z.scap, "-0.33,0,-0.5,0", "0,0,-0.5,0", 'data-ps="-0.3,0,-0.5,0"');
+    B.Z.scap, "-0.33,0,-0.5,0", "0,0,-0.5,0", 'data-fi="1050" data-ps="-0.3,0,-0.5,0"');
   /* contact */
   add("it--contact", '<p class="tag"><i class="dot live"></i><span data-i18n="footer.head1"></span> / <span data-i18n="footer.head2"></span></p><h2 class="sr" data-i18n="footer.cta"></h2><div class="pxs" data-px aria-hidden="true"></div><p class="mail"><a class="mail__a" href="mailto:' + D.email + '">' + D.email + '</a><button type="button" class="btn" data-copy data-i18n="common.copy"></button></p><p class="links"><a class="btn" href="' + D.github + '" target="_blank" rel="noopener" data-i18n="footer.social.github"></a><a class="btn" href="' + D.instagram + '" target="_blank" rel="noopener" data-i18n="footer.social.inst"></a></p><p class="foot"><span data-i18n="footer.credit"></span><br><span data-i18n="footer.copy"></span></p>', B.Z.contact, "0,0,-0.5,0", "0,0,-0.5,0", 'data-fi="950"');
   B.world.innerHTML = parts.join("");
@@ -97,13 +89,12 @@ B.fmtNums = (scope = document) => $$("[data-fmt]", scope).forEach((el) => { el.t
 /* ───────── the ASCII type: a word is rasterised once into cells; each frame decides, cell by cell, what it shows ───────── */
 /* look of every word: base + one set for wide screens and one for tall ones */
 const S = {
-  nameL: { base: { capVW: 0.09, capVH: 0.2, maxW: 0.4, cwDiv: 275, track: 0.05, alpha: 0.92 }, t: { capVW: 0.15, capVH: 0.07, capMin: 40, capMax: 64, maxW: 0.9, cwMin: 3.4, cwDiv: 110 } },
-  nameR: { base: { capVW: 0.09, capVH: 0.2, maxW: 0.43, cwDiv: 275, track: 0.05, alpha: 0.92 }, t: { capVW: 0.15, capVH: 0.07, capMin: 40, capMax: 64, maxW: 0.92, cwMin: 3.4, cwDiv: 110 } },
+  nameL: { base: { capVW: 0.082, capVH: 0.2, maxW: 0.36, cwDiv: 275, track: 0.05, alpha: 0.92 }, sh: { maxW: 0.29 }, t: { capVW: 0.15, capVH: 0.07, capMin: 40, capMax: 64, maxW: 0.9, cwMin: 3.4, cwDiv: 110 } },
+  nameR: { base: { capVW: 0.082, capVH: 0.2, maxW: 0.38, cwDiv: 275, track: 0.05, alpha: 0.92 }, sh: { maxW: 0.3 }, t: { capVW: 0.15, capVH: 0.07, capMin: 40, capMax: 64, maxW: 0.92, cwMin: 3.4, cwDiv: 110 } },
   about: { base: { capVW: 0.09, capVH: 0.17, maxW: 0.74, cwDiv: 295, track: 0.045, alpha: 0.92 }, sh: { capVH: 0.14 }, t: { capVW: 0.115, capVH: 0.09, maxW: 0.92, cwMin: 3.6, cwDiv: 105 } },
-  work: { base: { capVW: 0.34, capVH: 0.46, maxW: 1.0, cwDiv: 170, track: 0.03, alpha: 0.4, word: 1 }, t: { capVW: 0.5, capVH: 0.3, maxW: 0.94, cwMin: 5, cwDiv: 100, alpha: 0.46 } },
-  skills: { base: { capVW: 0.32, capVH: 0.44, maxW: 1.0, cwDiv: 170, track: 0.03, alpha: 0.4, word: 1 }, t: { capVW: 0.46, capVH: 0.3, maxW: 0.94, cwMin: 5, cwDiv: 100, alpha: 0.46 } },
-  me: { base: { capVW: 0.075, capVH: 0.15, maxW: 0.7, cwDiv: 295, track: 0.045, alpha: 0.92 }, sh: { capVH: 0.12 }, t: { capVW: 0.115, capVH: 0.09, maxW: 0.92, cwMin: 3.6, cwDiv: 105 } },
-  ai: { base: { capVW: 0.075, capVH: 0.15, maxW: 0.7, cwDiv: 295, track: 0.045, alpha: 0.92 }, sh: { capVH: 0.12 }, t: { capVW: 0.115, capVH: 0.09, maxW: 0.92, cwMin: 3.6, cwDiv: 105 } }
+  work: { base: { capVW: 0.34, capVH: 0.46, maxW: 1.0, cwDiv: 170, track: 0.03, alpha: 0.52, word: 1 }, t: { capVW: 0.5, capVH: 0.3, maxW: 0.94, cwMin: 5, cwDiv: 100, alpha: 0.58 } },
+  skills: { base: { capVW: 0.32, capVH: 0.44, maxW: 1.0, cwDiv: 170, track: 0.03, alpha: 0.52, word: 1 }, t: { capVW: 0.46, capVH: 0.3, maxW: 0.94, cwMin: 5, cwDiv: 100, alpha: 0.58 } },
+  me: { base: { capVW: 0.075, capVH: 0.15, maxW: 0.7, cwDiv: 295, track: 0.045, alpha: 0.92 }, sh: { capVH: 0.12 }, t: { capVW: 0.115, capVH: 0.09, maxW: 0.92, cwMin: 3.6, cwDiv: 105 } }
 };
 B.spec = (key) => {
   const s = S[key], o = Object.assign({}, s.base, NK.tall ? s.t : NK.short ? s.sh : null);
