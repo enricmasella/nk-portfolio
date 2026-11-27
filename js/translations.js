@@ -111,13 +111,12 @@ function initI18n() {
   applyDom();
 }
 
-// Orden del dock y del pie. `ai` es la sección nueva (AI Tools & Development Workflow).
+// Orden del dock y del pie.
 const NAV = [
   { key: "nav.work", id: "work" },
   { key: "nav.about", id: "path" },
   { key: "nav.skills", id: "skills" },
   { key: "nav.project", id: "project" },
-  { key: "nav.ai", id: "ai" },
   { key: "nav.contact", id: "contact" }
 ];
 
@@ -136,7 +135,6 @@ const strings = {
     "nav.about": "About",
     "nav.skills": "Skills",
     "nav.project": "Project",
-    "nav.ai": "AI",
     "nav.contact": "Contact",
     "nav.github": "GitHub",
     "common.comingSoon": "Coming soon",
@@ -155,7 +153,6 @@ const strings = {
     "nav.about": "Sobre mí",
     "nav.skills": "Habilidades",
     "nav.project": "Proyecto",
-    "nav.ai": "IA",
     "nav.contact": "Contacto",
     "nav.github": "GitHub",
     "common.comingSoon": "Próximamente",
@@ -174,7 +171,6 @@ const strings = {
     "nav.about": "Sobre mi",
     "nav.skills": "Habilitats",
     "nav.project": "Projecte",
-    "nav.ai": "IA",
     "nav.contact": "Contacte",
     "nav.github": "GitHub",
     "common.comingSoon": "Properament",
@@ -647,134 +643,6 @@ const stringsPaddock = {
 };
 
 
-// AI Tools & Development Workflow
-const stringsAI = {
-  en: {
-    "ai.label": "AI tools & development workflow",
-    "ai.head1": "AI-augmented,",
-    "ai.head2": "human-driven",
-    "ai.slop": "Anti-AI slop.",
-    "ai.lead": "AI speeds up the repetitive work, explores options, reads code, spots mistakes and helps me learn. I read, test and decide what ships.",
-    "ai.term.cmd": "ps tools",
-    "ai.term.tool": "tool",
-    "ai.term.use": "used for",
-    "ai.term.pick": "select a tool",
-    "ai.t1.use": "routing · testing",
-    "ai.t1.desc": "Local LLM gateway and router. It lets me develop and test efficiently against different models.",
-    "ai.t2.use": "dev · tests · review",
-    "ai.t2.desc": "Coding agent for development, tests and continuous code review.",
-    "ai.t3.use": "orchestration · skills",
-    "ai.t3.desc": "Agent orchestration, skills management and complex tasks that run locally.",
-    "ai.t4.use": "refactor · debug · design",
-    "ai.t4.desc": "Advanced programming help: refactoring, debugging and architecture.",
-    "ai.t5.use": "code · design · docs",
-    "ai.t5.desc": "Code generation, technical solution design and documentation.",
-    "ai.t6.use": "repos · context · support",
-    "ai.t6.desc": "Large-repo analysis, contextual reasoning and technical support.",
-    "ai.flow.label": "How a change gets made",
-    "ai.flow.ai": "AI",
-    "ai.flow.me": "me",
-    "ai.f1.name": "idea",
-    "ai.f1.desc": "I frame the problem",
-    "ai.f2.name": "draft",
-    "ai.f2.desc": "AI explores and writes options",
-    "ai.f3.name": "review",
-    "ai.f3.desc": "I read and question every change",
-    "ai.f4.name": "validate",
-    "ai.f4.desc": "Tests and my own judgement",
-    "ai.f5.name": "ship",
-    "ai.f5.desc": "Only what passes both",
-    "ai.back": "anything rejected goes back to draft",
-    "ai.helps.label": "AI helps with",
-    "ai.helps": "repetitive tasks · exploring solutions · reading code · improving the process · learning · catching errors",
-    "ai.keep.label": "I keep",
-    "ai.keep": "the judgement · the validation · the final result"
-  },
-  es: {
-    "ai.label": "Herramientas de IA y flujo de desarrollo",
-    "ai.head1": "Con IA,",
-    "ai.head2": "guiado por humanos",
-    "ai.slop": "Anti-AI slop.",
-    "ai.lead": "La IA acelera lo repetitivo, explora opciones, lee código, detecta errores y me ayuda a aprender. Yo reviso, pruebo y decido qué se publica.",
-    "ai.term.cmd": "ps tools",
-    "ai.term.tool": "herramienta",
-    "ai.term.use": "para qué",
-    "ai.term.pick": "elige una herramienta",
-    "ai.t1.use": "enrutado · pruebas",
-    "ai.t1.desc": "Gateway y enrutador local de modelos LLM. Me permite desarrollar y probar de forma eficiente con distintos modelos.",
-    "ai.t2.use": "desarrollo · tests · revisión",
-    "ai.t2.desc": "Agente de programación para desarrollo, tests y revisión continua de código.",
-    "ai.t3.use": "orquestación · skills",
-    "ai.t3.desc": "Orquestación de agentes, gestión de skills y tareas complejas que se ejecutan en local.",
-    "ai.t4.use": "refactor · debug · diseño",
-    "ai.t4.desc": "Ayuda avanzada de programación: refactorización, depuración y arquitectura.",
-    "ai.t5.use": "código · diseño · docs",
-    "ai.t5.desc": "Generación de código, diseño de soluciones técnicas y documentación.",
-    "ai.t6.use": "repos · contexto · soporte",
-    "ai.t6.desc": "Análisis de repositorios grandes, razonamiento contextual y soporte técnico.",
-    "ai.flow.label": "Cómo se hace un cambio",
-    "ai.flow.ai": "IA",
-    "ai.flow.me": "yo",
-    "ai.f1.name": "idea",
-    "ai.f1.desc": "Yo planteo el problema",
-    "ai.f2.name": "borrador",
-    "ai.f2.desc": "La IA explora y escribe opciones",
-    "ai.f3.name": "revisión",
-    "ai.f3.desc": "Leo y cuestiono cada cambio",
-    "ai.f4.name": "validación",
-    "ai.f4.desc": "Tests y mi propio criterio",
-    "ai.f5.name": "publicar",
-    "ai.f5.desc": "Solo lo que pasa ambas",
-    "ai.back": "lo rechazado vuelve al borrador",
-    "ai.helps.label": "La IA ayuda con",
-    "ai.helps": "tareas repetitivas · explorar soluciones · leer código · mejorar el proceso · aprender · detectar errores",
-    "ai.keep.label": "Me quedo con",
-    "ai.keep": "el criterio · la validación · el resultado final"
-  },
-  ca: {
-    "ai.label": "Eines d'IA i flux de desenvolupament",
-    "ai.head1": "Amb IA,",
-    "ai.head2": "guiat per humans",
-    "ai.slop": "Anti-AI slop.",
-    "ai.lead": "La IA accelera el que és repetitiu, explora opcions, llegeix codi, detecta errors i m'ajuda a aprendre. Jo reviso, provo i decideixo què es publica.",
-    "ai.term.cmd": "ps tools",
-    "ai.term.tool": "eina",
-    "ai.term.use": "per a què",
-    "ai.term.pick": "tria una eina",
-    "ai.t1.use": "enrutament · proves",
-    "ai.t1.desc": "Gateway i encaminador local de models LLM. Em permet desenvolupar i provar de manera eficient amb diferents models.",
-    "ai.t2.use": "desenvolupament · tests · revisió",
-    "ai.t2.desc": "Agent de programació per a desenvolupament, tests i revisió contínua de codi.",
-    "ai.t3.use": "orquestració · skills",
-    "ai.t3.desc": "Orquestració d'agents, gestió de skills i tasques complexes que s'executen en local.",
-    "ai.t4.use": "refactor · debug · disseny",
-    "ai.t4.desc": "Ajuda avançada de programació: refactorització, depuració i arquitectura.",
-    "ai.t5.use": "codi · disseny · docs",
-    "ai.t5.desc": "Generació de codi, disseny de solucions tècniques i documentació.",
-    "ai.t6.use": "repos · context · suport",
-    "ai.t6.desc": "Anàlisi de repositoris grans, raonament contextual i suport tècnic.",
-    "ai.flow.label": "Com es fa un canvi",
-    "ai.flow.ai": "IA",
-    "ai.flow.me": "jo",
-    "ai.f1.name": "idea",
-    "ai.f1.desc": "Jo plantejo el problema",
-    "ai.f2.name": "esborrany",
-    "ai.f2.desc": "La IA explora i escriu opcions",
-    "ai.f3.name": "revisió",
-    "ai.f3.desc": "Llegeixo i qüestiono cada canvi",
-    "ai.f4.name": "validació",
-    "ai.f4.desc": "Tests i el meu propi criteri",
-    "ai.f5.name": "publicar",
-    "ai.f5.desc": "Només el que passa totes dues",
-    "ai.back": "el que es rebutja torna a l'esborrany",
-    "ai.helps.label": "La IA ajuda amb",
-    "ai.helps": "tasques repetitives · explorar solucions · llegir codi · millorar el procés · aprendre · detectar errors",
-    "ai.keep.label": "Em quedo amb",
-    "ai.keep": "el criteri · la validació · el resultat final"
-  }
-};
-
-
 const stringsFooter = {
   en: {
     "footer.logo.alt": "Enric Masella",
@@ -958,7 +826,6 @@ registerStrings(stringsSeason);
 registerStrings(stringsProjects);
 registerStrings(stringsTimeline);
 registerStrings(stringsPaddock);
-registerStrings(stringsAI);
 registerStrings(stringsFooter);
 registerStrings(stringsWorld);
 
