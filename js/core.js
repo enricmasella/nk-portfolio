@@ -44,9 +44,7 @@ NK.DATA = {
       ["skills.cat.vcs", ["Git", "GitHub", "GitHub Actions"]], ["skills.cat.ai", ["Claude Code", "GPT", "Gemini", "OpenCode", "Hermes", "OmniRoute"]]
     ],
     exploring: ["React", "Vue.js", "Next.js", "Node.js", "Socket.IO"]
-  },
-  tools: [["OmniRoute", "t1"], ["OpenCode", "t2"], ["Hermes", "t3"], ["Claude Code", "t4"], ["GPT", "t5"], ["Gemini", "t6"]],
-  flow: [["f1", "me"], ["f2", "ai"], ["f3", "me"], ["f4", "me"], ["f5", "me"]]
+  }
 };
 /* a value is a number (formatted for the language), a literal, or { k: key } (translated) */
 NK.val = (v) => (typeof v === "number" ? I.fmtNum(v) : v && v.k ? I.t(v.k) : v);
